@@ -127,7 +127,7 @@ pub fn build_ui(app: &adw::Application) {
     scrolled.set_child(Some(&page));
 
     let access_group = PreferencesGroup::builder()
-        .title("Access & Daemon Status")
+        .title("Access &amp; Daemon Status")
         .build();
     page.add(&access_group);
 
@@ -313,6 +313,6 @@ pub fn build_ui(app: &adw::Application) {
     });
     login_row.add_suffix(&login_switch);
 
-    window.set_child(Some(&main_box));
+    window.set_content(Some(&main_box));
     window.show();
 }

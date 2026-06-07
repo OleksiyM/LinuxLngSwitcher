@@ -5,6 +5,8 @@ on: [push, pull_request]
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
       
@@ -27,3 +29,15 @@ jobs:
         with:
           name: GnomeLngSwitcher-binary
           path: target/release/gnome-lng-switcher
+
+      - name: Release Latest
+        uses: softprops/action-gh-release@v2
+        if: github.ref == 'refs/heads/main'
+        with:
+          tag_name: latest
+          files: target/release/gnome-lng-switcher
+          prerelease: true
+          title: "Latest Build"
+          body: "Automatic build of the latest commit on the main branch."
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
