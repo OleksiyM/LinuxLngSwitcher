@@ -73,6 +73,57 @@ fn is_autostart_enabled() -> bool {
     desktop_path.exists()
 }
 
+fn is_extension_installed() -> bool {
+    let home = match std::env::var("HOME") {
+        Ok(h) => h,
+        Err(_) => return false,
+    };
+    let ext_dir = std::path::PathBuf::from(home)
+        .join(".local")
+        .join("share")
+        .join("gnome-shell")
+        .join("extensions")
+        .join("gnome-lng-switcher@alexmalovanyy.gmail.com");
+    ext_dir.join("metadata.json").exists() && ext_dir.join("extension.js").exists()
+}
+
+fn is_extension_enabled() -> bool {
+    let output = match std::process::Command::new("gnome-extensions")
+        .args(&["list", "--enabled"])
+        .output()
+    {
+        Ok(out) => out,
+        Err(_) => return false,
+    };
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    stdout.lines().any(|line| line.trim() == "gnome-lng-switcher@alexmalovanyy.gmail.com")
+}
+
+fn install_and_enable_extension() -> Result<(), Box<dyn std::error::Error>> {
+    let home = std::env::var("HOME")?;
+    let ext_dir = std::path::PathBuf::from(home)
+        .join(".local")
+        .join("share")
+        .join("gnome-shell")
+        .join("extensions")
+        .join("gnome-lng-switcher@alexmalovanyy.gmail.com");
+
+    std::fs::create_dir_all(&ext_dir)?;
+
+    let metadata_content = include_str!("../extension/metadata.json");
+    let extension_content = include_str!("../extension/extension.js");
+
+    std::fs::write(ext_dir.join("metadata.json"), metadata_content)?;
+    std::fs::write(ext_dir.join("extension.js"), extension_content)?;
+
+    // Try to enable the extension
+    let _ = std::process::Command::new("gnome-extensions")
+        .args(&["enable", "gnome-lng-switcher@alexmalovanyy.gmail.com"])
+        .status();
+
+    Ok(())
+}
+
 fn format_layout_name(code: &str) -> String {
     match code {
         "us" => "English (U.S.)".to_string(),
@@ -205,7 +256,32 @@ pub fn build_ui(app: &adw::Application) {
                 }
             }
         }));
-        daemon_row.add_suffix(&start_daemon_btn);
+    }
+
+    let extension_row = ActionRow::builder()
+        .title("GNOME Extension Helper")
+        .subtitle("Required to change layouts programmatically")
+        .build();
+    access_group.add(&extension_row);
+
+    let ext_active = is_extension_installed() && is_extension_enabled();
+    let extension_status_label = Label::builder()
+        .label(if ext_active { "● Active" } else { "● Inactive" })
+        .css_classes(vec![if ext_active { "status-running" } else { "error" }])
+        .valign(Align::Center)
+        .build();
+    extension_row.add_suffix(&extension_status_label);
+
+    if !ext_active {
+        let enable_ext_btn = Button::with_label("Enable Helper");
+        enable_ext_btn.connect_clicked(clone!(@weak extension_status_label => move |btn| {
+            if install_and_enable_extension().is_ok() {
+                extension_status_label.set_label("● Active");
+                extension_status_label.set_css_classes(&["status-running"]);
+                btn.set_sensitive(false);
+            }
+        }));
+        extension_row.add_suffix(&enable_ext_btn);
     }
 
     let left_ctrl_group = PreferencesGroup::builder()

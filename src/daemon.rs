@@ -112,10 +112,26 @@ pub fn get_current_layout() -> u32 {
     settings.uint("current")
 }
 
-pub fn switch_to_layout(layout_index: u32) -> Result<(), glib::BoolError> {
-    let settings = Settings::new("org.gnome.desktop.input-sources");
-    settings.set_uint("current", layout_index)
+pub fn switch_to_layout(layout_index: u32) -> Result<(), Box<dyn std::error::Error>> {
+    let output = std::process::Command::new("gdbus")
+        .args(&[
+            "call",
+            "--session",
+            "--dest", "org.gnome.GnomeLngSwitcher",
+            "--object-path", "/org/gnome/GnomeLngSwitcher",
+            "--method", "org.gnome.GnomeLngSwitcher.SwitchToLayout",
+            &layout_index.to_string(),
+        ])
+        .output()?;
+
+    if !output.status.success() {
+        let err_msg = String::from_utf8_lossy(&output.stderr);
+        return Err(format!("D-Bus call failed: {}", err_msg).into());
+    }
+
+    Ok(())
 }
+
 
 fn handle_layout_switch(key: KeyCode, config: &AppConfig) {
     let available = get_available_layouts();
