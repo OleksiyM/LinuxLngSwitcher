@@ -36,7 +36,8 @@ jobs:
         with:
           tag_name: latest
           files: target/release/gnome-lng-switcher
-          prerelease: true
+          prerelease: false
+          make_latest: true
           name: "Latest Build"
           body: "Automatic build of the latest commit on the main branch."
         env:
