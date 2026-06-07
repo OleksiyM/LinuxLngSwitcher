@@ -140,6 +140,11 @@ fn format_layout_name(code: &str) -> String {
 }
 
 pub fn build_ui(app: &adw::Application) {
+    // Auto-update extension files if already installed to keep JS code in sync
+    if is_extension_installed() {
+        let _ = install_and_enable_extension();
+    }
+
     let config = Rc::new(RefCell::new(load_config()));
     let layouts = get_available_layouts();
     let layouts_formatted: Vec<String> = layouts.iter().map(|l| format_layout_name(l)).collect();
