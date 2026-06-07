@@ -113,10 +113,9 @@ pub fn get_current_layout() -> u32 {
     settings.uint("current")
 }
 
-pub fn switch_to_layout(layout_index: u32) -> Result<(), glib::Error> {
+pub fn switch_to_layout(layout_index: u32) -> Result<(), glib::BoolError> {
     let settings = Settings::new("org.gnome.desktop.input-sources");
-    settings.set_uint("current", layout_index)?;
-    Ok(())
+    settings.set_uint("current", layout_index)
 }
 
 fn handle_layout_switch(key: KeyCode, config: &AppConfig) {
