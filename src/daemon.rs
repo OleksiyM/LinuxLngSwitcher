@@ -117,7 +117,7 @@ pub fn switch_to_layout(layout_index: u32) -> Result<(), Box<dyn std::error::Err
         .args(&[
             "call",
             "--session",
-            "--dest", "org.gnome.GnomeLngSwitcher",
+            "--dest", "org.gnome.Shell",
             "--object-path", "/org/gnome/GnomeLngSwitcher",
             "--method", "org.gnome.GnomeLngSwitcher.SwitchToLayout",
             &layout_index.to_string(),
