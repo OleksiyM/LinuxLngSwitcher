@@ -256,6 +256,7 @@ pub fn build_ui(app: &adw::Application) {
                 }
             }
         }));
+        daemon_row.add_suffix(&start_daemon_btn);
     }
 
     let extension_row = ActionRow::builder()
