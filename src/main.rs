@@ -2,6 +2,7 @@ mod config;
 mod daemon;
 mod gui;
 
+use adw::prelude::*;
 use std::env;
 
 fn main() {

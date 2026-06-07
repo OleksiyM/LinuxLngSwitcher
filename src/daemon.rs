@@ -1,6 +1,7 @@
 use crate::config::AppConfig;
-use gio::prelude::*;
-use gio::Settings;
+use gtk::gio::prelude::*;
+use gtk::gio::Settings;
+use gtk::glib;
 use std::collections::HashSet;
 use std::fs::read_dir;
 use std::path::{Path, PathBuf};
