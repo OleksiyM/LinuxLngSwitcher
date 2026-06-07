@@ -29,15 +29,12 @@ export default class GnomeLngSwitcherExtension extends Extension {
     SwitchToLayout(index) {
         try {
             let manager = Keyboard.getInputSourceManager();
-            let len = (manager && manager.inputSources) ? manager.inputSources.length : -1;
-            console.log(`GnomeLngSwitcher Extension: Attempting to switch to index ${index}. Total sources: ${len}`);
-            
-            if (manager && manager.inputSources && index < manager.inputSources.length) {
+            if (manager && manager.inputSources && manager.inputSources[index]) {
+                console.log(`GnomeLngSwitcher Extension: Activating source at index ${index}`);
                 manager.inputSources[index].activate();
-                console.log(`GnomeLngSwitcher Extension: Successfully activated source at index ${index}`);
                 return true;
             } else {
-                console.warn(`GnomeLngSwitcher Extension: Index ${index} is out of bounds or inputSources not available`);
+                console.warn(`GnomeLngSwitcher Extension: Source at index ${index} is not available`);
             }
         } catch (e) {
             console.error(`GnomeLngSwitcher Extension: Error switching layout: ${e}`);
