@@ -72,3 +72,21 @@ Modern GNOME Shell sessions restrict programmatic layout switching. We use a tin
 4. Click **«Start Daemon»** to launch the background event listener service.
 5. *(Optional)* Turn on **Launch at Login** to autostart the switcher silently when you boot your PC.
 6. Click the **«Close»** button in the header bar. The settings window will close, but the key listener daemon will keep running silently in the background.
+
+---
+
+## Running in the Background (CLI)
+
+If you launch the daemon from the GUI, it automatically detaches from the terminal and continues running silently in the background.
+
+If you prefer to start the daemon manually from the terminal and want it to persist after closing the terminal window, use one of the following commands:
+
+### Method 1: Using `disown` (Recommended)
+```bash
+./gnome-lng-switcher --daemon >/dev/null 2>&1 & disown
+```
+
+### Method 2: Using `nohup`
+```bash
+nohup ./gnome-lng-switcher --daemon >/dev/null 2>&1 &
+```
