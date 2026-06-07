@@ -37,7 +37,7 @@ jobs:
           tag_name: latest
           files: target/release/gnome-lng-switcher
           prerelease: true
-          title: "Latest Build"
+          name: "Latest Build"
           body: "Automatic build of the latest commit on the main branch."
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
