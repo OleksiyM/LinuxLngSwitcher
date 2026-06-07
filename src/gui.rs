@@ -162,15 +162,11 @@ pub fn build_ui(app: &adw::Application) {
     let header_bar = gtk::HeaderBar::new();
     main_box.append(&header_bar);
 
-    let quit_btn = Button::with_label("Quit");
-    quit_btn.connect_clicked(clone!(@weak app => move |_| {
-        let pid_path = crate::config::get_pid_path();
-        if pid_path.exists() {
-            let _ = std::fs::remove_file(&pid_path);
-        }
+    let close_btn = Button::with_label("Close");
+    close_btn.connect_clicked(clone!(@weak app => move |_| {
         app.quit();
     }));
-    header_bar.pack_start(&quit_btn);
+    header_bar.pack_start(&close_btn);
 
     let scrolled = gtk::ScrolledWindow::builder()
         .hscrollbar_policy(gtk::PolicyType::Never)
@@ -245,24 +241,41 @@ pub fn build_ui(app: &adw::Application) {
         .build();
     daemon_row.add_suffix(&daemon_status_label);
 
-    if !daemon_active {
-        let start_daemon_btn = Button::with_label("Start Daemon");
-        start_daemon_btn.connect_clicked(clone!(@weak daemon_status_label => move |btn| {
+    let daemon_btn = Button::with_label(if daemon_active { "Stop Daemon" } else { "Start Daemon" });
+    daemon_btn.connect_clicked(clone!(@weak daemon_status_label => move |btn| {
+        if is_daemon_running() {
+            // Stop daemon by removing PID file
+            let pid_path = crate::config::get_pid_path();
+            if pid_path.exists() {
+                let _ = std::fs::remove_file(&pid_path);
+            }
+            std::thread::sleep(std::time::Duration::from_millis(300));
+            if !is_daemon_running() {
+                daemon_status_label.set_label("● Stopped");
+                daemon_status_label.set_css_classes(&["error"]);
+                btn.set_label("Start Daemon");
+            }
+        } else {
+            // Start daemon
             if let Ok(exe_path) = std::env::current_exe() {
+                // Decouple spawned daemon from terminal stdio to prevent SIGHUP on close
                 let _ = std::process::Command::new(exe_path)
                     .arg("--daemon")
+                    .stdout(std::process::Stdio::null())
+                    .stderr(std::process::Stdio::null())
+                    .stdin(std::process::Stdio::null())
                     .spawn();
                 
                 std::thread::sleep(std::time::Duration::from_millis(300));
                 if is_daemon_running() {
                     daemon_status_label.set_label("● Running");
                     daemon_status_label.set_css_classes(&["status-running"]);
-                    btn.set_sensitive(false);
+                    btn.set_label("Stop Daemon");
                 }
             }
-        }));
-        daemon_row.add_suffix(&start_daemon_btn);
-    }
+        }
+    }));
+    daemon_row.add_suffix(&daemon_btn);
 
     let extension_row = ActionRow::builder()
         .title("GNOME Extension Helper")
