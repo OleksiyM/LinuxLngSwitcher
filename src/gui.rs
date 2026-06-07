@@ -2,7 +2,7 @@ use crate::config::{load_config, save_config, AppConfig};
 use crate::daemon::get_available_layouts;
 use adw::prelude::*;
 use adw::{ActionRow, ApplicationWindow, PreferencesGroup, PreferencesPage};
-use gtk::glib::clone;
+use glib::clone;
 use gtk::gdk;
 use gtk::{
     Align, Box as GtkBox, Button, CheckButton, DropDown, Label, Orientation, Scale, SelectionMode,
