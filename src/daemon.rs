@@ -1,7 +1,6 @@
 use crate::config::AppConfig;
 use gtk::gio::prelude::*;
 use gtk::gio::Settings;
-use gtk::glib;
 use std::collections::HashSet;
 use std::fs::read_dir;
 use std::path::{Path, PathBuf};
@@ -121,18 +120,27 @@ pub fn switch_to_layout(layout_index: u32) -> Result<(), glib::BoolError> {
 fn handle_layout_switch(key: KeyCode, config: &AppConfig) {
     let available = get_available_layouts();
     if available.is_empty() {
+        println!("[Daemon] No available layouts found in GNOME GSettings!");
         return;
     }
 
     match key {
         KeyCode::LeftCtrl => {
             let target = config.left_ctrl_layout;
+            println!("[Daemon] Left Ctrl tap: switching to layout index {}", target);
             if target < available.len() as u32 {
-                let _ = switch_to_layout(target);
+                if let Err(e) = switch_to_layout(target) {
+                    println!("[Daemon] Error switching to layout: {:?}", e);
+                } else {
+                    println!("[Daemon] Successfully switched to layout index {}", target);
+                }
+            } else {
+                println!("[Daemon] Target layout index {} is out of bounds (max: {})", target, available.len() - 1);
             }
         }
         KeyCode::RightCtrl => {
             if config.right_ctrl_layouts.is_empty() {
+                println!("[Daemon] Right Ctrl list of layouts is empty, doing nothing.");
                 return;
             }
             let current = get_current_layout();
@@ -143,8 +151,15 @@ fn handle_layout_switch(key: KeyCode, config: &AppConfig) {
                 config.right_ctrl_layouts[0]
             };
 
+            println!("[Daemon] Right Ctrl tap: cycling from {} to layout index {}", current, next_index);
             if next_index < available.len() as u32 {
-                let _ = switch_to_layout(next_index);
+                if let Err(e) = switch_to_layout(next_index) {
+                    println!("[Daemon] Error switching to layout: {:?}", e);
+                } else {
+                    println!("[Daemon] Successfully switched to layout index {}", next_index);
+                }
+            } else {
+                println!("[Daemon] Target layout index {} is out of bounds (max: {})", next_index, available.len() - 1);
             }
         }
         _ => {}
@@ -157,8 +172,13 @@ fn is_keyboard(path: &Path) -> bool {
         Ok(d) => d,
         Err(_) => return false,
     };
+    let name = device.name().unwrap_or("Unknown Device");
     if let Some(keys) = device.supported_keys() {
-        keys.contains(evdev::Key::KEY_LEFTCTRL) && keys.contains(evdev::Key::KEY_RIGHTCTRL)
+        let has_ctrls = keys.contains(evdev::Key::KEY_LEFTCTRL) && keys.contains(evdev::Key::KEY_RIGHTCTRL);
+        if has_ctrls {
+            println!("[Daemon] Device {:?} ({}) matches keyboard criteria (Control keys supported).", path, name);
+        }
+        has_ctrls
     } else {
         false
     }
@@ -167,7 +187,10 @@ fn is_keyboard(path: &Path) -> bool {
 fn scan_devices(tx: &std::sync::mpsc::Sender<Event>, active_devices: &mut HashSet<PathBuf>) {
     let entries = match read_dir("/dev/input") {
         Ok(e) => e,
-        Err(_) => return,
+        Err(e) => {
+            println!("[Daemon] Failed to read /dev/input: {}", e);
+            return;
+        }
     };
 
     for entry in entries.flatten() {
@@ -175,6 +198,7 @@ fn scan_devices(tx: &std::sync::mpsc::Sender<Event>, active_devices: &mut HashSe
         if let Some(filename) = path.file_name().and_then(|f| f.to_str()) {
             if filename.starts_with("event") && !active_devices.contains(&path) {
                 if is_keyboard(&path) {
+                    println!("[Daemon] Starting event reader for keyboard: {:?}", path);
                     active_devices.insert(path.clone());
                     start_device_reader(path, tx.clone());
                 }
@@ -187,7 +211,10 @@ fn start_device_reader(path: PathBuf, tx: std::sync::mpsc::Sender<Event>) {
     std::thread::spawn(move || {
         let mut device = match evdev::Device::open(&path) {
             Ok(d) => d,
-            Err(_) => return,
+            Err(e) => {
+                println!("[Daemon] Failed to open device {:?}: {}", path, e);
+                return;
+            }
         };
         loop {
             match device.fetch_events() {
@@ -216,7 +243,8 @@ fn start_device_reader(path: PathBuf, tx: std::sync::mpsc::Sender<Event>) {
                         }
                     }
                 }
-                Err(_) => {
+                Err(e) => {
+                    println!("[Daemon] Error reading events from {:?}: {}. Stopping reader.", path, e);
                     return;
                 }
             }
@@ -231,6 +259,7 @@ fn reload_config_if_changed(config: &mut AppConfig, last_modified: &mut Option<s
             if Some(modified) != *last_modified {
                 *config = crate::config::load_config();
                 *last_modified = Some(modified);
+                println!("[Daemon] Configuration reloaded: {:?}", config);
             }
         }
     }
@@ -244,12 +273,16 @@ pub fn run_daemon() -> Result<(), Box<dyn std::error::Error>> {
     }
     std::fs::write(&pid_path, pid.to_string())?;
 
+    println!("[Daemon] GnomeLngSwitcher daemon started with PID {}", pid);
+
     let (tx, rx) = std::sync::mpsc::channel();
     let mut config = crate::config::load_config();
     let mut last_config_modified = None;
     if let Ok(metadata) = std::fs::metadata(crate::config::get_config_path()) {
         last_config_modified = metadata.modified().ok();
     }
+
+    println!("[Daemon] Initial configuration loaded: {:?}", config);
 
     let mut detector = TapDetector::new();
     let mut active_devices = HashSet::new();
@@ -258,6 +291,7 @@ pub fn run_daemon() -> Result<(), Box<dyn std::error::Error>> {
 
     loop {
         if !pid_path.exists() {
+            println!("[Daemon] daemon.pid file removed. Exiting daemon.");
             break;
         }
 
@@ -265,15 +299,23 @@ pub fn run_daemon() -> Result<(), Box<dyn std::error::Error>> {
             Ok(event) => {
                 reload_config_if_changed(&mut config, &mut last_config_modified);
                 if let Some(triggered_key) = detector.handle_event(event.key, event.action, config.sensitivity_ms) {
+                    println!("[Daemon] Tap detected for {:?}", triggered_key);
                     handle_layout_switch(triggered_key, &config);
                 }
             }
             Err(std::sync::mpsc::RecvTimeoutError::Timeout) => {
-                active_devices.retain(|path: &PathBuf| path.exists());
+                active_devices.retain(|path: &PathBuf| {
+                    let exists = path.exists();
+                    if !exists {
+                        println!("[Daemon] Device {:?} removed from disk.", path);
+                    }
+                    exists
+                });
                 scan_devices(&tx, &mut active_devices);
                 reload_config_if_changed(&mut config, &mut last_config_modified);
             }
             Err(std::sync::mpsc::RecvTimeoutError::Disconnected) => {
+                println!("[Daemon] Receiver disconnected. Exiting daemon.");
                 break;
             }
         }
