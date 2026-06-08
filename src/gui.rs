@@ -5,8 +5,8 @@ use adw::{ActionRow, ApplicationWindow, PreferencesGroup, PreferencesPage};
 use glib::clone;
 use gtk::gdk;
 use gtk::{
-    Align, Box as GtkBox, Button, CheckButton, DropDown, Label, Orientation, Scale, SelectionMode,
-    Separator, Switch,
+    Align, Box as GtkBox, Button, CheckButton, DropDown, Label, ListBoxRow, Orientation, Scale,
+    SelectionMode, Separator, Switch,
 };
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -167,38 +167,15 @@ pub fn build_ui(app: &adw::Application) {
         .application(app)
         .title("GnomeLngSwitcher")
         .default_width(540)
-        .default_height(520)
+        .default_height(500)
         .resizable(true)
         .build();
 
     let main_box = GtkBox::new(Orientation::Vertical, 0);
 
+    // Standard HeaderBar with center-aligned window title "GnomeLngSwitcher"
     let header_bar = adw::HeaderBar::new();
-    let empty_title = GtkBox::new(Orientation::Horizontal, 0);
-    header_bar.set_title_widget(Some(&empty_title));
     main_box.append(&header_bar);
-
-    // Title and Subtitle header block (macOS style)
-    let title_box = GtkBox::new(Orientation::Vertical, 4);
-    title_box.set_margin_top(8);
-    title_box.set_margin_bottom(16);
-    title_box.set_margin_start(24);
-    title_box.set_margin_end(24);
-
-    let app_title = Label::builder()
-        .halign(Align::Start)
-        .build();
-    app_title.set_markup("<span size='xx-large' weight='bold'>GnomeLngSwitcher</span>");
-
-    let app_subtitle = Label::builder()
-        .label("Keyboard Layout Utility")
-        .halign(Align::Start)
-        .css_classes(vec!["dim-label"])
-        .build();
-
-    title_box.append(&app_title);
-    title_box.append(&app_subtitle);
-    main_box.append(&title_box);
 
     let page = PreferencesPage::new();
     page.set_vexpand(true);
@@ -320,7 +297,7 @@ pub fn build_ui(app: &adw::Application) {
         extension_row.add_suffix(&enable_ext_btn);
     }
 
-    // 2. Group: Control Configurations (Side-by-Side macOS Columns)
+    // 2. Group: Control Configurations (Side-by-Side macOS Columns inside boxed list)
     let controls_group = PreferencesGroup::builder()
         .title("Control Configurations")
         .build();
@@ -421,9 +398,13 @@ pub fn build_ui(app: &adw::Application) {
     columns_box.append(&sep);
     columns_box.append(&right_col);
 
-    controls_group.add(&columns_box);
+    let controls_row = ListBoxRow::new();
+    controls_row.set_child(Some(&columns_box));
+    controls_row.set_selectable(false);
+    controls_row.set_activatable(false);
+    controls_group.add(&controls_row);
 
-    // 3. Group: Settings (Sensitivity & Launch at Login)
+    // 3. Group: Settings (Sensitivity & Launch at Login inside boxed list)
     let settings_group = PreferencesGroup::builder()
         .title("Settings")
         .build();
@@ -505,7 +486,11 @@ pub fn build_ui(app: &adw::Application) {
     login_row.append(&login_switch);
     settings_box.append(&login_row);
 
-    settings_group.add(&settings_box);
+    let settings_row = ListBoxRow::new();
+    settings_row.set_child(Some(&settings_box));
+    settings_row.set_selectable(false);
+    settings_row.set_activatable(false);
+    settings_group.add(&settings_row);
 
     window.set_content(Some(&main_box));
     window.show();
