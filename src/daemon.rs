@@ -311,7 +311,7 @@ impl ksni::Tray for SwitcherTray {
     }
 
     fn icon_name(&self) -> String {
-        "input-keyboard".to_string()
+        "input-keyboard-symbolic".to_string()
     }
 
     fn activate(&mut self, _x: i32, _y: i32) {
