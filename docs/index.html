@@ -202,6 +202,11 @@
             font-weight: 400;
         }
 
+        .hero-subtitle strong {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
         .hero-actions {
             display: flex;
             gap: 16px;
@@ -570,11 +575,12 @@
             <div>
                 <h1 class="hero-title">Mac-style layout switching for <span>GNOME Linux</span></h1>
                 <p class="hero-subtitle">
-                    A lightweight background service to switch layout behaviors: tap **Left Control** to set English, and tap **Right Control** to cycle other layouts. Fast, native GTK4 config, Wayland-ready.
+                    A lightweight background service to switch layout behaviors: tap <strong>Left Control</strong> to set English, and tap <strong>Right Control</strong> to cycle other layouts. Fast, native GTK4 config, Wayland-ready.
                 </p>
                 <div class="hero-actions">
                     <a href="#setup" class="btn-primary">Get Started</a>
-                    <a href="https://github.com/OleksiyM/LinuxLngSwitcher/releases/download/latest/gnome-lng-switcher" class="btn-secondary">Download Binary</a>
+                    <a id="btn-download-x86" href="https://github.com/OleksiyM/LinuxLngSwitcher/releases/download/v0.1.2/gnome-lng-switcher-x86_64.tar.gz" class="btn-secondary">Download x86_64</a>
+                    <a id="btn-download-arm" href="https://github.com/OleksiyM/LinuxLngSwitcher/releases/download/v0.1.2/gnome-lng-switcher-aarch64.tar.gz" class="btn-secondary">Download aarch64 (ARM)</a>
                 </div>
             </div>
             
@@ -602,7 +608,12 @@
         <div class="container" style="max-width: 800px;">
             <div class="section-header" style="margin-bottom: 30px; text-align: center;">
                 <h2 style="font-family: var(--font-title); font-size: 26px;">Quick Install</h2>
-                <p style="color: var(--text-secondary); font-size: 14px;">Deploy layouts switcher daemon directly via terminal</p>
+                <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 16px;">Deploy layouts switcher daemon directly via terminal</p>
+                <!-- Arch Selector Pill -->
+                <div class="arch-selector" style="display: flex; justify-content: center; gap: 8px; margin-top: 12px;">
+                    <button id="arch-x86" class="tab-btn active" onclick="setTerminalArch('x86_64')">x86_64 (Intel/AMD)</button>
+                    <button id="arch-arm" class="tab-btn" onclick="setTerminalArch('aarch64')">aarch64 (ARM)</button>
+                </div>
             </div>
             <div class="terminal-box">
                 <button class="terminal-copy-btn" onclick="copyTerminalText()">Copy</button>
@@ -610,10 +621,13 @@
                     <span>bash</span>
                     <span>Terminal</span>
                 </div>
-                <div class="terminal-line"><span class="terminal-cmd">$</span>wget https://github.com/OleksiyM/LinuxLngSwitcher/releases/download/latest/gnome-lng-switcher</div>
-                <div class="terminal-line"><span class="terminal-cmd">$</span>chmod +x gnome-lng-switcher</div>
-                <div class="terminal-line"><span class="terminal-cmd">$</span>sudo usermod -aG input $USER</div>
-                <div class="terminal-line"><span class="terminal-cmd">$</span>./gnome-lng-switcher</div>
+                <div id="terminal-content" style="white-space: pre; color: var(--text-secondary); font-family: monospace; line-height: 1.5;">
+                    <div class="terminal-line"><span class="terminal-cmd">$</span>wget https://github.com/OleksiyM/LinuxLngSwitcher/releases/download/v0.1.2/gnome-lng-switcher-x86_64.tar.gz</div>
+                    <div class="terminal-line"><span class="terminal-cmd">$</span>tar -xzf gnome-lng-switcher-x86_64.tar.gz</div>
+                    <div class="terminal-line"><span class="terminal-cmd">$</span>chmod +x gnome-lng-switcher</div>
+                    <div class="terminal-line"><span class="terminal-cmd">$</span>sudo usermod -aG input $USER</div>
+                    <div class="terminal-line"><span class="terminal-cmd">$</span>./gnome-lng-switcher</div>
+                </div>
             </div>
         </div>
     </section>
@@ -728,6 +742,9 @@
 
     <!-- Tab Switching Logic & Text Copying -->
     <script>
+        let currentArch = 'x86_64';
+        let currentTag = 'v0.1.2';
+
         function switchTab(evt, tabId) {
             var tabContents = document.getElementsByClassName("tab-content");
             for (var i = 0; i < tabContents.length; i++) {
@@ -743,10 +760,35 @@
             evt.currentTarget.classList.add("active");
         }
 
+        function setTerminalArch(arch) {
+            currentArch = arch;
+            document.getElementById('arch-x86').classList.toggle('active', arch === 'x86_64');
+            document.getElementById('arch-arm').classList.toggle('active', arch === 'aarch64');
+            renderTerminal();
+        }
+
+        function updateTerminalCommands(tag) {
+            currentTag = tag;
+            renderTerminal();
+        }
+
+        function renderTerminal() {
+            const terminalLines = [
+                `<div class="terminal-line"><span class="terminal-cmd">$</span>wget https://github.com/OleksiyM/LinuxLngSwitcher/releases/download/\${currentTag}/gnome-lng-switcher-\${currentArch}.tar.gz</div>`,
+                `<div class="terminal-line"><span class="terminal-cmd">$</span>tar -xzf gnome-lng-switcher-\${currentArch}.tar.gz</div>`,
+                `<div class="terminal-line"><span class="terminal-cmd">$</span>chmod +x gnome-lng-switcher</div>`,
+                `<div class="terminal-line"><span class="terminal-cmd">$</span>sudo usermod -aG input \$USER</div>`,
+                `<div class="terminal-line"><span class="terminal-cmd">$</span>./gnome-lng-switcher</div>`
+            ];
+            
+            document.getElementById('terminal-content').innerHTML = terminalLines.join('\n');
+        }
+
         function copyTerminalText() {
-            const commands = `wget https://github.com/OleksiyM/LinuxLngSwitcher/releases/download/latest/gnome-lng-switcher
+            const commands = `wget https://github.com/OleksiyM/LinuxLngSwitcher/releases/download/\${currentTag}/gnome-lng-switcher-\${currentArch}.tar.gz
+tar -xzf gnome-lng-switcher-\${currentArch}.tar.gz
 chmod +x gnome-lng-switcher
-sudo usermod -aG input $USER
+sudo usermod -aG input \$USER
 ./gnome-lng-switcher`;
             
             navigator.clipboard.writeText(commands).then(() => {
@@ -759,6 +801,27 @@ sudo usermod -aG input $USER
                 console.error("Could not copy terminal text: ", err);
             });
         }
+
+        // Fetch the latest release links dynamically from GitHub API
+        fetch('https://api.github.com/repos/OleksiyM/LinuxLngSwitcher/releases/latest')
+            .then(response => response.json())
+            .then(data => {
+                const tag = data.tag_name;
+                const x86Asset = data.assets.find(a => a.name.includes('x86_64'));
+                const armAsset = data.assets.find(a => a.name.includes('aarch64'));
+                
+                const x86Url = x86Asset ? x86Asset.browser_download_url : `https://github.com/OleksiyM/LinuxLngSwitcher/releases/download/\${tag}/gnome-lng-switcher-x86_64.tar.gz`;
+                const armUrl = armAsset ? armAsset.browser_download_url : `https://github.com/OleksiyM/LinuxLngSwitcher/releases/download/\${tag}/gnome-lng-switcher-aarch64.tar.gz`;
+                
+                document.getElementById('btn-download-x86').href = x86Url;
+                document.getElementById('btn-download-arm').href = armUrl;
+                
+                updateTerminalCommands(tag);
+            })
+            .catch(err => {
+                console.error("Error fetching latest release:", err);
+                renderTerminal();
+            });
     </script>
 </body>
 </html>
