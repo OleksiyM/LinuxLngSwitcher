@@ -163,11 +163,14 @@ pub fn build_ui(app: &adw::Application) {
         gtk::STYLE_PROVIDER_PRIORITY_APPLICATION,
     );
 
+    let initial_width = config.borrow().window_width.unwrap_or(540);
+    let initial_height = config.borrow().window_height.unwrap_or(660);
+
     let window = ApplicationWindow::builder()
         .application(app)
         .title("GnomeLngSwitcher")
-        .default_width(540)
-        .default_height(660)
+        .default_width(initial_width)
+        .default_height(initial_height)
         .resizable(true)
         .build();
 

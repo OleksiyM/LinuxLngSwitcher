@@ -8,6 +8,10 @@ pub struct AppConfig {
     pub left_ctrl_layout: u32,
     pub right_ctrl_layouts: Vec<u32>,
     pub sensitivity_ms: u64,
+    #[serde(default)]
+    pub window_width: Option<i32>,
+    #[serde(default)]
+    pub window_height: Option<i32>,
 }
 
 impl Default for AppConfig {
@@ -16,6 +20,8 @@ impl Default for AppConfig {
             left_ctrl_layout: 0,
             right_ctrl_layouts: vec![1],
             sensitivity_ms: 300,
+            window_width: None,
+            window_height: None,
         }
     }
 }
