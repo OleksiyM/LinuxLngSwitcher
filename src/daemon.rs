@@ -374,8 +374,26 @@ pub fn run_daemon() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("[Daemon] GnomeLngSwitcher daemon started with PID {}", pid);
 
-    let tray = SwitcherTray;
-    let _handle = tray.spawn().expect("Failed to spawn tray icon");
+    // Spawn tray icon in a background thread to prevent blocking main daemon start,
+    // and loop-retry if the D-Bus tray watcher isn't ready yet (e.g., during desktop login autostart).
+    std::thread::spawn(move || {
+        let tray = SwitcherTray;
+        loop {
+            match tray.spawn() {
+                Ok(_handle) => {
+                    log_msg("[Daemon] Tray icon spawned successfully");
+                    // Keep the handle alive by parking the thread indefinitely
+                    loop {
+                        std::thread::park();
+                    }
+                }
+                Err(e) => {
+                    log_msg(&format!("[Daemon] Failed to spawn tray icon: {:?}. Retrying in 5 seconds...", e));
+                    std::thread::sleep(std::time::Duration::from_secs(5));
+                }
+            }
+        }
+    });
 
     let (tx, rx) = std::sync::mpsc::channel();
     let mut config = crate::config::load_config();
