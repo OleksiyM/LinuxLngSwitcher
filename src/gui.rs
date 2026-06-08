@@ -149,34 +149,68 @@ pub fn build_ui(app: &adw::Application) {
     let layouts = get_available_layouts();
     let layouts_formatted: Vec<String> = layouts.iter().map(|l| format_layout_name(l)).collect();
 
+    // Setup CSS styles
+    let provider = gtk::CssProvider::new();
+    provider.load_from_data("
+        label.success { color: #2ec27e; font-weight: bold; }
+        label.error { color: #e01b24; font-weight: bold; }
+        label.status-running { color: #3584e4; font-weight: bold; }
+        label.sens-value { color: #3584e4; font-weight: bold; }
+    ");
+    gtk::style_context_add_provider_for_display(
+        &gdk::Display::default().expect("Could not get default display"),
+        &provider,
+        gtk::STYLE_PROVIDER_PRIORITY_APPLICATION,
+    );
+
     let window = ApplicationWindow::builder()
         .application(app)
         .title("GnomeLngSwitcher")
-        .default_width(420)
-        .default_height(550)
+        .default_width(540)
+        .default_height(520)
         .resizable(true)
         .build();
 
     let main_box = GtkBox::new(Orientation::Vertical, 0);
 
-    let header_bar = gtk::HeaderBar::new();
+    let header_bar = adw::HeaderBar::new();
+    let empty_title = GtkBox::new(Orientation::Horizontal, 0);
+    header_bar.set_title_widget(Some(&empty_title));
     main_box.append(&header_bar);
 
-    let close_btn = Button::with_label("Close");
-    close_btn.connect_clicked(clone!(@weak app => move |_| {
-        app.quit();
-    }));
-    header_bar.pack_start(&close_btn);
+    // Title and Subtitle header block (macOS style)
+    let title_box = GtkBox::new(Orientation::Vertical, 4);
+    title_box.set_margin_top(8);
+    title_box.set_margin_bottom(16);
+    title_box.set_margin_start(24);
+    title_box.set_margin_end(24);
+
+    let app_title = Label::builder()
+        .halign(Align::Start)
+        .build();
+    app_title.set_markup("<span size='xx-large' weight='bold'>GnomeLngSwitcher</span>");
+
+    let app_subtitle = Label::builder()
+        .label("Keyboard Layout Utility")
+        .halign(Align::Start)
+        .css_classes(vec!["dim-label"])
+        .build();
+
+    title_box.append(&app_title);
+    title_box.append(&app_subtitle);
+    main_box.append(&title_box);
 
     let page = PreferencesPage::new();
     page.set_vexpand(true);
     main_box.append(&page);
 
+    // 1. Group: Access & Daemon Status
     let access_group = PreferencesGroup::builder()
-        .title("Access &amp; Daemon Status")
+        .title("System Status")
         .build();
     page.add(&access_group);
 
+    // Row: Accessibility Access
     let access_row = ActionRow::builder()
         .title("Accessibility Access")
         .subtitle("Required to intercept modifier keys from /dev/input")
@@ -189,19 +223,6 @@ pub fn build_ui(app: &adw::Application) {
         .css_classes(vec![if has_access { "success" } else { "error" }])
         .valign(Align::Center)
         .build();
-    
-    let provider = gtk::CssProvider::new();
-    provider.load_from_data("
-        label.success { color: #2ec27e; font-weight: bold; }
-        label.error { color: #e01b24; font-weight: bold; }
-        label.status-running { color: #3584e4; font-weight: bold; }
-    ");
-    gtk::style_context_add_provider_for_display(
-        &gdk::Display::default().expect("Could not get default display"),
-        &provider,
-        gtk::STYLE_PROVIDER_PRIORITY_APPLICATION,
-    );
-
     access_row.add_suffix(&status_label);
 
     if !has_access {
@@ -221,6 +242,7 @@ pub fn build_ui(app: &adw::Application) {
         access_group.add(&help_row);
     }
 
+    // Row: Daemon Status
     let daemon_row = ActionRow::builder()
         .title("Daemon Status")
         .subtitle("Keyboard interceptor background service")
@@ -271,6 +293,7 @@ pub fn build_ui(app: &adw::Application) {
     }));
     daemon_row.add_suffix(&daemon_btn);
 
+    // Row: GNOME Extension Helper
     let extension_row = ActionRow::builder()
         .title("GNOME Extension Helper")
         .subtitle("Required to change layouts programmatically")
@@ -297,17 +320,34 @@ pub fn build_ui(app: &adw::Application) {
         extension_row.add_suffix(&enable_ext_btn);
     }
 
-    let left_ctrl_group = PreferencesGroup::builder()
-        .title("Left Control")
-        .description("Action when Left Control key is tapped once")
+    // 2. Group: Control Configurations (Side-by-Side macOS Columns)
+    let controls_group = PreferencesGroup::builder()
+        .title("Control Configurations")
         .build();
-    page.add(&left_ctrl_group);
+    page.add(&controls_group);
 
-    let left_row = ActionRow::builder()
-        .title("Switch to layout")
+    let columns_box = GtkBox::new(Orientation::Horizontal, 16);
+    columns_box.set_margin_top(12);
+    columns_box.set_margin_bottom(12);
+    columns_box.set_margin_start(16);
+    columns_box.set_margin_end(16);
+
+    // Left Column
+    let left_col = GtkBox::new(Orientation::Vertical, 8);
+    left_col.set_hexpand(true);
+    left_col.set_halign(Align::Fill);
+
+    let left_title = Label::builder()
+        .halign(Align::Start)
         .build();
-    left_ctrl_group.add(&left_row);
+    left_title.set_markup("<b>Left Control</b>");
 
+    let left_subtitle = Label::builder()
+        .label("Switch to layout:")
+        .halign(Align::Start)
+        .css_classes(vec!["dim-label"])
+        .build();
+    
     let left_dropdown = DropDown::from_strings(
         &layouts_formatted.iter().map(|s| s.as_str()).collect::<Vec<&str>>(),
     );
@@ -320,21 +360,40 @@ pub fn build_ui(app: &adw::Application) {
         cfg.left_ctrl_layout = dd.selected();
         let _ = save_config(&cfg);
     }));
-    left_row.add_suffix(&left_dropdown);
+    left_dropdown.set_halign(Align::Fill);
 
-    let right_ctrl_group = PreferencesGroup::builder()
-        .title("Right Control")
-        .description("Select layouts to cycle through when Right Control is tapped")
+    left_col.append(&left_title);
+    left_col.append(&left_subtitle);
+    left_col.append(&left_dropdown);
+
+    // Vertical Separator
+    let sep = Separator::new(Orientation::Vertical);
+
+    // Right Column
+    let right_col = GtkBox::new(Orientation::Vertical, 8);
+    right_col.set_hexpand(true);
+    right_col.set_halign(Align::Fill);
+
+    let right_title = Label::builder()
+        .halign(Align::Start)
         .build();
-    page.add(&right_ctrl_group);
+    right_title.set_markup("<b>Right Control</b>");
 
+    let right_subtitle = Label::builder()
+        .label("Cycle layout list:")
+        .halign(Align::Start)
+        .css_classes(vec!["dim-label"])
+        .build();
+
+    let right_checkboxes_box = GtkBox::new(Orientation::Vertical, 6);
+    
     for (idx, layout_name) in layouts_formatted.iter().enumerate() {
-        let row = ActionRow::builder()
-            .title(layout_name.as_str())
-            .build();
-        
+        let check_row = GtkBox::new(Orientation::Horizontal, 8);
+        check_row.set_valign(Align::Center);
+
         let check = CheckButton::builder()
             .active(config.borrow().right_ctrl_layouts.contains(&(idx as u32)))
+            .label(layout_name.as_str())
             .valign(Align::Center)
             .build();
         
@@ -350,27 +409,55 @@ pub fn build_ui(app: &adw::Application) {
             let _ = save_config(&cfg);
         }));
 
-        row.add_prefix(&check);
-        right_ctrl_group.add(&row);
+        check_row.append(&check);
+        right_checkboxes_box.append(&check_row);
     }
 
-    let sensitivity_group = PreferencesGroup::builder()
-        .title("Keypress Sensitivity")
-        .build();
-    page.add(&sensitivity_group);
+    right_col.append(&right_title);
+    right_col.append(&right_subtitle);
+    right_col.append(&right_checkboxes_box);
 
-    let sens_row = ActionRow::builder()
-        .title("Timeout threshold")
-        .subtitle("Maximum duration for a key press to be registered as a tap")
+    columns_box.append(&left_col);
+    columns_box.append(&sep);
+    columns_box.append(&right_col);
+
+    controls_group.add(&columns_box);
+
+    // 3. Group: Settings (Sensitivity & Launch at Login)
+    let settings_group = PreferencesGroup::builder()
+        .title("Settings")
         .build();
-    sensitivity_group.add(&sens_row);
+    page.add(&settings_group);
+
+    let settings_box = GtkBox::new(Orientation::Vertical, 12);
+    settings_box.set_margin_top(12);
+    settings_box.set_margin_bottom(12);
+    settings_box.set_margin_start(16);
+    settings_box.set_margin_end(16);
+
+    // Keypress Sensitivity Header
+    let sens_header = GtkBox::new(Orientation::Horizontal, 8);
+    let sens_title = Label::builder()
+        .halign(Align::Start)
+        .hexpand(true)
+        .build();
+    sens_title.set_markup("<b>Keypress Sensitivity</b>");
 
     let current_sens = config.borrow().sensitivity_ms as f64;
-    let sens_label = Label::new(Some(&format!("{:.2} s", current_sens / 1000.0)));
+    let sens_label = Label::builder()
+        .label(&format!("{:.2} s", current_sens / 1000.0))
+        .halign(Align::End)
+        .css_classes(vec!["sens-value"])
+        .build();
     
+    sens_header.append(&sens_title);
+    sens_header.append(&sens_label);
+    settings_box.append(&sens_header);
+
+    // Slider
     let scale = Scale::with_range(Orientation::Horizontal, 150.0, 600.0, 10.0);
     scale.set_value(current_sens);
-    scale.set_width_request(150);
+    scale.set_hexpand(true);
     scale.connect_value_changed(clone!(@strong config, @strong sens_label => move |s| {
         let val = s.value() as u64;
         sens_label.set_label(&format!("{:.2} s", val as f64 / 1000.0));
@@ -378,29 +465,47 @@ pub fn build_ui(app: &adw::Application) {
         cfg.sensitivity_ms = val;
         let _ = save_config(&cfg);
     }));
+    settings_box.append(&scale);
 
-    sens_row.add_suffix(&scale);
-    sens_row.add_suffix(&sens_label);
+    // Separator line
+    let settings_sep = Separator::new(Orientation::Horizontal);
+    settings_box.append(&settings_sep);
 
-    let login_group = PreferencesGroup::builder()
-        .title("Startup")
+    // Launch at Login Row
+    let login_row = GtkBox::new(Orientation::Horizontal, 12);
+    login_row.set_valign(Align::Center);
+
+    let login_text_box = GtkBox::new(Orientation::Vertical, 2);
+    login_text_box.set_hexpand(true);
+
+    let login_title = Label::builder()
+        .halign(Align::Start)
         .build();
-    page.add(&login_group);
+    login_title.set_markup("<b>Launch at Login</b>");
 
-    let login_row = ActionRow::builder()
-        .title("Launch at Login")
-        .subtitle("Start utility automatically at GNOME desktop login")
+    let login_subtitle = Label::builder()
+        .label("Start utility automatically at GNOME desktop login")
+        .halign(Align::Start)
+        .css_classes(vec!["dim-label"])
         .build();
-    login_group.add(&login_row);
+
+    login_text_box.append(&login_title);
+    login_text_box.append(&login_subtitle);
 
     let login_switch = Switch::builder()
         .active(is_autostart_enabled())
         .valign(Align::Center)
+        .halign(Align::End)
         .build();
     login_switch.connect_active_notify(|sw| {
         let _ = set_autostart(sw.is_active());
     });
-    login_row.add_suffix(&login_switch);
+
+    login_row.append(&login_text_box);
+    login_row.append(&login_switch);
+    settings_box.append(&login_row);
+
+    settings_group.add(&settings_box);
 
     window.set_content(Some(&main_box));
     window.show();
