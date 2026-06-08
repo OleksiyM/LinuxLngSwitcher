@@ -598,8 +598,8 @@
                         <a href="#setup" class="btn-primary">Get Started &amp; Setup Guide</a>
                     </div>
                     <div class="hero-download-row">
-                        <a id="btn-download-x86" href="https://github.com/OleksiyM/LinuxLngSwitcher/releases/download/v0.1.2/gnome-lng-switcher-x86_64.tar.gz" class="btn-secondary">Download for x86_64</a>
-                        <a id="btn-download-arm" href="https://github.com/OleksiyM/LinuxLngSwitcher/releases/download/v0.1.2/gnome-lng-switcher-aarch64.tar.gz" class="btn-secondary">Download for aarch64 (ARM)</a>
+                        <a id="btn-download-x86" href="https://github.com/OleksiyM/LinuxLngSwitcher/releases/latest/download/gnome-lng-switcher-x86_64.tar.gz" class="btn-secondary">Download for x86_64</a>
+                        <a id="btn-download-arm" href="https://github.com/OleksiyM/LinuxLngSwitcher/releases/latest/download/gnome-lng-switcher-aarch64.tar.gz" class="btn-secondary">Download for aarch64 (ARM)</a>
                     </div>
                 </div>
             </div>
@@ -641,7 +641,7 @@
                     <span>bash</span>
                     <span>Terminal</span>
                 </div>
-                <pre id="terminal-content" style="white-space: pre-wrap; word-break: break-all; color: var(--text-secondary); font-family: monospace; line-height: 1.6; margin: 0; padding: 0;">$ wget https://github.com/OleksiyM/LinuxLngSwitcher/releases/download/v0.1.2/gnome-lng-switcher-x86_64.tar.gz
+                <pre id="terminal-content" style="white-space: pre-wrap; word-break: break-all; color: var(--text-secondary); font-family: monospace; line-height: 1.6; margin: 0; padding: 0;">$ wget https://github.com/OleksiyM/LinuxLngSwitcher/releases/latest/download/gnome-lng-switcher-x86_64.tar.gz
 $ tar -xzf gnome-lng-switcher-x86_64.tar.gz
 $ chmod +x gnome-lng-switcher
 $ sudo usermod -aG input $USER
@@ -761,7 +761,7 @@ $ ./gnome-lng-switcher</pre>
     <!-- Tab Switching Logic & Text Copying -->
     <script>
         let currentArch = 'x86_64';
-        let currentTag = 'v0.1.2';
+        let currentTag = 'latest';
 
         function switchTab(evt, tabId) {
             var tabContents = document.getElementsByClassName("tab-content");
@@ -791,17 +791,18 @@ $ ./gnome-lng-switcher</pre>
         }
 
         function renderTerminal() {
-            const commands = `$ wget https://github.com/OleksiyM/LinuxLngSwitcher/releases/download/${currentTag}/gnome-lng-switcher-${currentArch}.tar.gz
+            const tagPart = currentTag === 'latest' ? 'latest/download' : `download/${currentTag}`;
+            const commands = `$ wget https://github.com/OleksiyM/LinuxLngSwitcher/releases/${tagPart}/gnome-lng-switcher-${currentArch}.tar.gz
 $ tar -xzf gnome-lng-switcher-${currentArch}.tar.gz
 $ chmod +x gnome-lng-switcher
 $ sudo usermod -aG input $USER
 $ ./gnome-lng-switcher`;
-            
             document.getElementById('terminal-content').textContent = commands;
         }
 
         function copyTerminalText() {
-            const commands = `wget https://github.com/OleksiyM/LinuxLngSwitcher/releases/download/${currentTag}/gnome-lng-switcher-${currentArch}.tar.gz
+            const tagPart = currentTag === 'latest' ? 'latest/download' : `download/${currentTag}`;
+            const commands = `wget https://github.com/OleksiyM/LinuxLngSwitcher/releases/${tagPart}/gnome-lng-switcher-${currentArch}.tar.gz
 tar -xzf gnome-lng-switcher-${currentArch}.tar.gz
 chmod +x gnome-lng-switcher
 sudo usermod -aG input $USER
