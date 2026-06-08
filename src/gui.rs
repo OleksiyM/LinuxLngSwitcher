@@ -167,7 +167,7 @@ pub fn build_ui(app: &adw::Application) {
         .application(app)
         .title("GnomeLngSwitcher")
         .default_width(540)
-        .default_height(500)
+        .default_height(560)
         .resizable(true)
         .build();
 
