@@ -1,5 +1,5 @@
 {
-  "uuid": "gnome-lng-switcher@oleksiym.github.com",
+  "uuid": "gnome-lng-switcher@alexmalovanyy.gmail.com",
   "name": "GnomeLngSwitcher Helper",
   "description": "Helper for GnomeLngSwitcher to switch keyboard layouts programmatically via D-Bus.",
   "shell-version": [

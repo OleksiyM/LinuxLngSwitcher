@@ -11,8 +11,6 @@ use gtk::{
 use std::cell::RefCell;
 use std::rc::Rc;
 
-const EXTENSION_UUID: &str = "gnome-lng-switcher@oleksiym.github.com";
-
 fn check_input_permission() -> bool {
     if let Ok(entries) = std::fs::read_dir("/dev/input") {
         for entry in entries.flatten() {
@@ -85,7 +83,7 @@ fn is_extension_installed() -> bool {
         .join("share")
         .join("gnome-shell")
         .join("extensions")
-        .join(EXTENSION_UUID);
+        .join("gnome-lng-switcher@alexmalovanyy.gmail.com");
     ext_dir.join("metadata.json").exists() && ext_dir.join("extension.js").exists()
 }
 
@@ -98,7 +96,7 @@ fn is_extension_enabled() -> bool {
         Err(_) => return false,
     };
     let stdout = String::from_utf8_lossy(&output.stdout);
-    stdout.lines().any(|line| line.trim() == EXTENSION_UUID)
+    stdout.lines().any(|line| line.trim() == "gnome-lng-switcher@alexmalovanyy.gmail.com")
 }
 
 fn install_and_enable_extension() -> Result<(), Box<dyn std::error::Error>> {
@@ -108,7 +106,7 @@ fn install_and_enable_extension() -> Result<(), Box<dyn std::error::Error>> {
         .join("share")
         .join("gnome-shell")
         .join("extensions")
-        .join(EXTENSION_UUID);
+        .join("gnome-lng-switcher@alexmalovanyy.gmail.com");
 
     std::fs::create_dir_all(&ext_dir)?;
 
@@ -120,7 +118,7 @@ fn install_and_enable_extension() -> Result<(), Box<dyn std::error::Error>> {
 
     // Try to enable the extension
     let _ = std::process::Command::new("gnome-extensions")
-        .args(&["enable", EXTENSION_UUID])
+        .args(&["enable", "gnome-lng-switcher@alexmalovanyy.gmail.com"])
         .status();
 
     Ok(())
@@ -155,7 +153,7 @@ pub fn build_ui(app: &adw::Application) {
         .application(app)
         .title("GnomeLngSwitcher")
         .default_width(420)
-        .default_height(620)
+        .default_height(550)
         .resizable(false)
         .build();
 
