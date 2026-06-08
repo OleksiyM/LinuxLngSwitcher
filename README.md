@@ -90,3 +90,24 @@ If you prefer to start the daemon manually from the terminal and want it to pers
 ```bash
 nohup ./gnome-lng-switcher --daemon >/dev/null 2>&1 &
 ```
+
+---
+
+## Advanced Options (Window Size Tuning)
+
+If you have custom system display scale configurations (e.g., fractional scaling or high DPI screens) and the GUI window has small scrollbars, you can override its default dimensions manually.
+
+Open your local configuration file at `~/.config/gnome-lng-switcher/config.json` and add the custom size parameters:
+
+```json
+{
+  "left_ctrl_layout": 0,
+  "right_ctrl_layouts": [1],
+  "sensitivity_ms": 300,
+  "window_width": 540,
+  "window_height": 724
+}
+```
+
+*   **`window_width`** (optional): Width of the settings window in pixels (default fallback: `540`).
+*   **`window_height`** (optional): Height of the settings window in pixels (default fallback: `660`).
