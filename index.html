@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GnomeLngSwitcher - macOS Style Keyboard Switcher for GNOME</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="header">
+        <div class="container header-container">
+            <div class="logo">
+                <span class="logo-icon">⌨️</span>
+                <span class="logo-text">GnomeLngSwitcher</span>
+            </div>
+            <a href="https://github.com/OleksiyM/LinuxLngSwitcher" class="btn btn-secondary">GitHub</a>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="container hero-container">
+                <h1>macOS-style Keyboard Switching for GNOME</h1>
+                <p class="subtitle">Tap <strong>Left Control</strong> for English. Tap <strong>Right Control</strong> to cycle Russian/Ukrainian. Native GNOME integration, lightning fast, and Wayland-friendly.</p>
+                <div class="hero-actions">
+                    <a href="https://github.com/OleksiyM/LinuxLngSwitcher/releases/download/latest/gnome-lng-switcher" class="btn btn-primary btn-large">Download for Linux</a>
+                    <a href="#setup" class="btn btn-secondary btn-large">Setup Instructions</a>
+                </div>
+            </div>
+        </section>
+
+        <section class="features">
+            <div class="container">
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">⚡</div>
+                        <h3>Instant Switching</h3>
+                        <p>Zero input lag. Switches layouts natively inside GNOME Shell using a lightweight D-Bus bridge extension.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🛡️</div>
+                        <h3>Wayland Compatible</h3>
+                        <p>Fully compliant with modern Wayland security policies. No root permissions needed once configured.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🎨</div>
+                        <h3>Libadwaita GUI</h3>
+                        <p>A beautiful, native configuration interface designed with GNOME's latest styling guidelines.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="setup" class="setup">
+            <div class="container">
+                <h2>Quick Setup</h2>
+                <div class="setup-steps">
+                    <div class="step-card">
+                        <span class="step-number">1</span>
+                        <h3>Install Dependencies</h3>
+                        <p>Make sure GTK4 and Libadwaita development libraries are installed:</p>
+                        <pre><code># Ubuntu / Debian
+sudo apt install libgtk-4-dev libadwaita-1-dev
+
+# Fedora
+sudo dnf install gtk4-devel libadwaita-devel</code></pre>
+                    </div>
+
+                    <div class="step-card">
+                        <span class="step-number">2</span>
+                        <h3>Download and Grant Permissions</h3>
+                        <p>Download the binary and add your user to the <code>input</code> group to read keyboard events:</p>
+                        <pre><code>wget https://github.com/OleksiyM/LinuxLngSwitcher/releases/download/latest/gnome-lng-switcher
+chmod +x gnome-lng-switcher
+sudo usermod -aG input $USER</code></pre>
+                        <p class="warning">⚠️ You must <strong>Log Out</strong> and log back in to apply group permissions.</p>
+                    </div>
+
+                    <div class="step-card">
+                        <span class="step-number">3</span>
+                        <h3>Run and Configure</h3>
+                        <p>Launch the settings window, click <strong>«Enable Helper»</strong> to install the status bar menu, and start the daemon:</p>
+                        <pre><code>./gnome-lng-switcher</code></pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>Created by <a href="https://github.com/OleksiyM">OleksiyM</a>. Licensed under the MIT License.</p>
+        </div>
+    </footer>
+</body>
+</html>
