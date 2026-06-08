@@ -283,9 +283,25 @@ fn reload_config_if_changed(config: &mut AppConfig, last_modified: &mut Option<s
 
 use ksni::blocking::TrayMethods;
 
+fn log_msg(msg: &str) {
+    println!("{}", msg);
+    let mut path = crate::config::get_config_dir();
+    path.push("daemon.log");
+    if let Ok(mut file) = std::fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(path)
+    {
+        use std::io::Write;
+        let _ = writeln!(file, "{}", msg);
+    }
+}
+
 struct SwitcherTray;
 
 impl ksni::Tray for SwitcherTray {
+    const MENU_ON_ACTIVATE: bool = true;
+
     fn id(&self) -> String {
         "GnomeLngSwitcher".to_string()
     }
@@ -299,9 +315,15 @@ impl ksni::Tray for SwitcherTray {
     }
 
     fn activate(&mut self, _x: i32, _y: i32) {
-        println!("[Daemon] Tray icon clicked. Opening settings GUI...");
+        log_msg("[Tray] Activate called");
         if let Ok(exe_path) = std::env::current_exe() {
-            let _ = std::process::Command::new(exe_path).spawn();
+            log_msg(&format!("[Tray] Spawning GUI from {:?}", exe_path));
+            match std::process::Command::new(exe_path).spawn() {
+                Ok(_) => log_msg("[Tray] GUI spawned successfully"),
+                Err(e) => log_msg(&format!("[Tray] Failed to spawn GUI: {:?}", e)),
+            }
+        } else {
+            log_msg("[Tray] Failed to get current_exe path");
         }
     }
 
@@ -311,8 +333,15 @@ impl ksni::Tray for SwitcherTray {
             StandardItem {
                 label: "Settings".to_string(),
                 activate: Box::new(|_this: &mut SwitcherTray| {
+                    log_msg("[Tray Menu] Settings clicked");
                     if let Ok(exe_path) = std::env::current_exe() {
-                        let _ = std::process::Command::new(exe_path).spawn();
+                        log_msg(&format!("[Tray Menu] Spawning GUI from {:?}", exe_path));
+                        match std::process::Command::new(exe_path).spawn() {
+                            Ok(_) => log_msg("[Tray Menu] GUI spawned successfully"),
+                            Err(e) => log_msg(&format!("[Tray Menu] Failed to spawn GUI: {:?}", e)),
+                        }
+                    } else {
+                        log_msg("[Tray Menu] Failed to get current_exe path");
                     }
                 }),
                 ..Default::default()
@@ -322,7 +351,7 @@ impl ksni::Tray for SwitcherTray {
             StandardItem {
                 label: "Quit".to_string(),
                 activate: Box::new(|_this: &mut SwitcherTray| {
-                    println!("[Daemon] Quit clicked. Stopping daemon.");
+                    log_msg("[Tray Menu] Quit clicked. Stopping daemon.");
                     let pid_path = crate::config::get_pid_path();
                     if pid_path.exists() {
                         let _ = std::fs::remove_file(&pid_path);

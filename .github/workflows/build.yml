@@ -38,15 +38,16 @@ jobs:
       - name: Build
         run: cargo build --release
         
-      - name: Rename binary
+      - name: Package Release
         run: |
-          mv target/release/gnome-lng-switcher target/release/gnome-lng-switcher-${{ matrix.arch }}
+          cd target/release
+          tar -czf gnome-lng-switcher-${{ matrix.arch }}.tar.gz gnome-lng-switcher
           
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: GnomeLngSwitcher-${{ matrix.arch }}
-          path: target/release/gnome-lng-switcher-${{ matrix.arch }}
+          path: target/release/gnome-lng-switcher-${{ matrix.arch }}.tar.gz
 
   release:
     name: Create GitHub Release
@@ -74,8 +75,8 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            release-assets/gnome-lng-switcher-x86_64
-            release-assets/gnome-lng-switcher-aarch64
+            release-assets/gnome-lng-switcher-x86_64.tar.gz
+            release-assets/gnome-lng-switcher-aarch64.tar.gz
           prerelease: false
           make_latest: true
           name: "Release ${{ github.ref_name }}"
