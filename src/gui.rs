@@ -83,7 +83,7 @@ fn is_extension_installed() -> bool {
         .join("share")
         .join("gnome-shell")
         .join("extensions")
-        .join("gnome-lng-switcher@alexmalovanyy.gmail.com");
+        .join("gnome-lng-switcher@github.com");
     ext_dir.join("metadata.json").exists() && ext_dir.join("extension.js").exists()
 }
 
@@ -96,7 +96,7 @@ fn is_extension_enabled() -> bool {
         Err(_) => return false,
     };
     let stdout = String::from_utf8_lossy(&output.stdout);
-    stdout.lines().any(|line| line.trim() == "gnome-lng-switcher@alexmalovanyy.gmail.com")
+    stdout.lines().any(|line| line.trim() == "gnome-lng-switcher@github.com")
 }
 
 fn install_and_enable_extension() -> Result<(), Box<dyn std::error::Error>> {
@@ -106,7 +106,7 @@ fn install_and_enable_extension() -> Result<(), Box<dyn std::error::Error>> {
         .join("share")
         .join("gnome-shell")
         .join("extensions")
-        .join("gnome-lng-switcher@alexmalovanyy.gmail.com");
+        .join("gnome-lng-switcher@github.com");
 
     std::fs::create_dir_all(&ext_dir)?;
 
@@ -118,7 +118,7 @@ fn install_and_enable_extension() -> Result<(), Box<dyn std::error::Error>> {
 
     // Try to enable the extension
     let _ = std::process::Command::new("gnome-extensions")
-        .args(&["enable", "gnome-lng-switcher@alexmalovanyy.gmail.com"])
+        .args(&["enable", "gnome-lng-switcher@github.com"])
         .status();
 
     Ok(())
@@ -154,7 +154,7 @@ pub fn build_ui(app: &adw::Application) {
         .title("GnomeLngSwitcher")
         .default_width(420)
         .default_height(550)
-        .resizable(false)
+        .resizable(true)
         .build();
 
     let main_box = GtkBox::new(Orientation::Vertical, 0);
@@ -168,15 +168,9 @@ pub fn build_ui(app: &adw::Application) {
     }));
     header_bar.pack_start(&close_btn);
 
-    let scrolled = gtk::ScrolledWindow::builder()
-        .hscrollbar_policy(gtk::PolicyType::Never)
-        .vscrollbar_policy(gtk::PolicyType::Automatic)
-        .vexpand(true)
-        .build();
-    main_box.append(&scrolled);
-
     let page = PreferencesPage::new();
-    scrolled.set_child(Some(&page));
+    page.set_vexpand(true);
+    main_box.append(&page);
 
     let access_group = PreferencesGroup::builder()
         .title("Access &amp; Daemon Status")

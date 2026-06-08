@@ -281,6 +281,60 @@ fn reload_config_if_changed(config: &mut AppConfig, last_modified: &mut Option<s
     }
 }
 
+use ksni::blocking::TrayMethods;
+
+struct SwitcherTray;
+
+impl ksni::Tray for SwitcherTray {
+    fn id(&self) -> String {
+        "GnomeLngSwitcher".to_string()
+    }
+
+    fn title(&self) -> String {
+        "Keyboard Layout Switcher".to_string()
+    }
+
+    fn icon_name(&self) -> String {
+        "input-keyboard".to_string()
+    }
+
+    fn activate(&mut self, _x: i32, _y: i32) {
+        println!("[Daemon] Tray icon clicked. Opening settings GUI...");
+        if let Ok(exe_path) = std::env::current_exe() {
+            let _ = std::process::Command::new(exe_path).spawn();
+        }
+    }
+
+    fn menu(&self) -> Vec<ksni::MenuItem<Self>> {
+        use ksni::menu::*;
+        vec![
+            StandardItem {
+                label: "Settings".to_string(),
+                activate: Box::new(|_this: &mut SwitcherTray| {
+                    if let Ok(exe_path) = std::env::current_exe() {
+                        let _ = std::process::Command::new(exe_path).spawn();
+                    }
+                }),
+                ..Default::default()
+            }
+            .into(),
+            MenuItem::Separator,
+            StandardItem {
+                label: "Quit".to_string(),
+                activate: Box::new(|_this: &mut SwitcherTray| {
+                    println!("[Daemon] Quit clicked. Stopping daemon.");
+                    let pid_path = crate::config::get_pid_path();
+                    if pid_path.exists() {
+                        let _ = std::fs::remove_file(&pid_path);
+                    }
+                }),
+                ..Default::default()
+            }
+            .into(),
+        ]
+    }
+}
+
 pub fn run_daemon() -> Result<(), Box<dyn std::error::Error>> {
     let pid = std::process::id();
     let pid_path = crate::config::get_pid_path();
@@ -290,6 +344,9 @@ pub fn run_daemon() -> Result<(), Box<dyn std::error::Error>> {
     std::fs::write(&pid_path, pid.to_string())?;
 
     println!("[Daemon] GnomeLngSwitcher daemon started with PID {}", pid);
+
+    let tray = SwitcherTray;
+    let _handle = tray.spawn().expect("Failed to spawn tray icon");
 
     let (tx, rx) = std::sync::mpsc::channel();
     let mut config = crate::config::load_config();

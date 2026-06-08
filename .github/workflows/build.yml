@@ -1,12 +1,26 @@
-name: Rust Build
+name: Rust Build & Release
 
-on: [push, pull_request]
+on:
+  push:
+    branches: [ main ]
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [ main ]
 
 jobs:
   build:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
+    name: Build (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x86_64
+            runner: ubuntu-latest
+          - arch: aarch64
+            runner: ubuntu-24.04-arm
+    
     steps:
       - uses: actions/checkout@v4
       
@@ -24,21 +38,47 @@ jobs:
       - name: Build
         run: cargo build --release
         
+      - name: Rename binary
+        run: |
+          mv target/release/gnome-lng-switcher target/release/gnome-lng-switcher-${{ matrix.arch }}
+          
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: GnomeLngSwitcher-binary
-          path: target/release/gnome-lng-switcher
+          name: GnomeLngSwitcher-${{ matrix.arch }}
+          path: target/release/gnome-lng-switcher-${{ matrix.arch }}
 
-      - name: Release Latest
-        uses: softprops/action-gh-release@v2
-        if: github.ref == 'refs/heads/main'
+  release:
+    name: Create GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Download x86_64 Artifact
+        uses: actions/download-artifact@v4
         with:
-          tag_name: latest
-          files: target/release/gnome-lng-switcher
+          name: GnomeLngSwitcher-x86_64
+          path: release-assets/
+          
+      - name: Download aarch64 Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: GnomeLngSwitcher-aarch64
+          path: release-assets/
+          
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            release-assets/gnome-lng-switcher-x86_64
+            release-assets/gnome-lng-switcher-aarch64
           prerelease: false
           make_latest: true
-          name: "Latest Build"
-          body: "Automatic build of the latest commit on the main branch."
+          name: "Release ${{ github.ref_name }}"
+          body: "Release build for version ${{ github.ref_name }}."
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
