@@ -377,8 +377,8 @@ pub fn run_daemon() -> Result<(), Box<dyn std::error::Error>> {
     // Spawn tray icon in a background thread to prevent blocking main daemon start,
     // and loop-retry if the D-Bus tray watcher isn't ready yet (e.g., during desktop login autostart).
     std::thread::spawn(move || {
-        let tray = SwitcherTray;
         loop {
+            let tray = SwitcherTray;
             match tray.spawn() {
                 Ok(_handle) => {
                     log_msg("[Daemon] Tray icon spawned successfully");
