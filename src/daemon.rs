@@ -139,14 +139,10 @@ pub fn get_current_layout() -> u32 {
     {
         if output.status.success() {
             let stdout = String::from_utf8_lossy(&output.stdout);
-            let cleaned: String = stdout
-                .chars()
-                .filter(|c| c.is_ascii_digit() || *c == ' ')
-                .collect();
-            if let Some(first_num) = cleaned.split_whitespace().next() {
-                if let Ok(idx) = first_num.parse::<u32>() {
-                    return idx;
-                }
+            let s = stdout.trim().trim_matches(|c| c == '(' || c == ')' || c == ',' || c == '\n' || c == ' ');
+            let s = s.strip_prefix("uint32").unwrap_or(s).trim();
+            if let Ok(idx) = s.parse::<u32>() {
+                return idx;
             }
         }
     }
