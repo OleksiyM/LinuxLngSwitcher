@@ -107,9 +107,76 @@ pub fn get_available_layouts() -> Vec<String> {
     layouts
 }
 
-pub fn get_current_layout() -> u32 {
+pub fn get_sources_tuples() -> Vec<(String, String)> {
     let settings = Settings::new("org.gnome.desktop.input-sources");
-    settings.uint("current")
+    let sources = settings.value("sources");
+    let mut list = Vec::new();
+    for i in 0..sources.n_children() {
+        let child = sources.child_value(i);
+        let type_var = child.child_value(0);
+        let name_var = child.child_value(1);
+        if let (Some(t), Some(n)) = (type_var.str(), name_var.str()) {
+            list.push((t.to_string(), n.to_string()));
+        }
+    }
+    list
+}
+
+pub fn get_current_layout() -> u32 {
+    // 1. Попробуем спросить напрямую у нашего GNOME Shell helper через D-Bus
+    if let Ok(output) = std::process::Command::new("gdbus")
+        .args(&[
+            "call",
+            "--session",
+            "--dest",
+            "org.gnome.Shell",
+            "--object-path",
+            "/org/gnome/GnomeLngSwitcher",
+            "--method",
+            "org.gnome.GnomeLngSwitcher.GetCurrentLayout",
+        ])
+        .output()
+    {
+        if output.status.success() {
+            let stdout = String::from_utf8_lossy(&output.stdout);
+            let cleaned: String = stdout
+                .chars()
+                .filter(|c| c.is_ascii_digit() || *c == ' ')
+                .collect();
+            if let Some(first_num) = cleaned.split_whitespace().next() {
+                if let Ok(idx) = first_num.parse::<u32>() {
+                    return idx;
+                }
+            }
+        }
+    }
+
+    // 2. Если расширение не ответило, определяем через mru-sources в GSettings
+    let settings = Settings::new("org.gnome.desktop.input-sources");
+    let sources = get_sources_tuples();
+    if sources.is_empty() {
+        return 0;
+    }
+
+    let mru = settings.value("mru-sources");
+    if mru.n_children() > 0 {
+        let first = mru.child_value(0);
+        let type_var = first.child_value(0);
+        let name_var = first.child_value(1);
+        if let (Some(t), Some(n)) = (type_var.str(), name_var.str()) {
+            if let Some(pos) = sources.iter().position(|(st, sn)| st == t && sn == n) {
+                return pos as u32;
+            }
+        }
+    }
+
+    // 3. Fallback на 'current'
+    let cur = settings.uint("current");
+    if (cur as usize) < sources.len() {
+        cur
+    } else {
+        0
+    }
 }
 
 pub fn switch_to_layout(layout_index: u32) -> Result<(), Box<dyn std::error::Error>> {

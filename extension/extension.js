@@ -1,3 +1,6 @@
+// GnomeLngSwitcher Extension Helper
+// GitHub: https://github.com/OleksiyM/LinuxLngSwitcher
+
 import Gio from 'gi://Gio';
 import { Extension } from 'resource:///org/gnome/shell/extensions/extension.js';
 import * as Keyboard from 'resource:///org/gnome/shell/ui/status/keyboard.js';
@@ -8,6 +11,9 @@ const DBUS_INTERFACE = `
     <method name="SwitchToLayout">
       <arg type="u" name="index" direction="in"/>
       <arg type="b" name="success" direction="out"/>
+    </method>
+    <method name="GetCurrentLayout">
+      <arg type="u" name="index" direction="out"/>
     </method>
   </interface>
 </node>
@@ -24,6 +30,18 @@ export default class GnomeLngSwitcherExtension extends Extension {
             this._dbusImpl.unexport();
             this._dbusImpl = null;
         }
+    }
+
+    GetCurrentLayout() {
+        try {
+            let manager = Keyboard.getInputSourceManager();
+            if (manager && manager.currentSource && typeof manager.currentSource.index === 'number') {
+                return manager.currentSource.index;
+            }
+        } catch (e) {
+            console.error(`GnomeLngSwitcher Extension: Error getting current layout: ${e}`);
+        }
+        return 0;
     }
 
     SwitchToLayout(index) {
