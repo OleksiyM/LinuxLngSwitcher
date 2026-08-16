@@ -1,11 +1,11 @@
 use crate::config::{load_config, save_config};
 use crate::daemon::get_available_layouts;
 use adw::prelude::*;
-use adw::{ActionRow, ApplicationWindow, PreferencesGroup, PreferencesPage};
+use adw::{ActionRow, ApplicationWindow, PreferencesGroup, PreferencesPage, Window as AdwWindow};
 use glib::clone;
 use gtk::gdk;
 use gtk::{
-    AboutDialog, Align, Box as GtkBox, Button, CheckButton, DropDown, Label, ListBoxRow,
+    Align, Box as GtkBox, Button, CheckButton, DropDown, Image, Label, LinkButton, ListBoxRow,
     Orientation, Scale, Separator, Switch,
 };
 use std::cell::RefCell;
@@ -140,30 +140,93 @@ fn format_layout_name(code: &str) -> String {
 }
 
 pub fn show_about_window(app: Option<&adw::Application>, parent: Option<&ApplicationWindow>) {
-    let comments = "Fast Control-key input layout switcher for GNOME\n(Wayland & X11)\n\n\
-        <a href=\"https://oleksiym.github.io/LinuxLngSwitcher/\">Website</a>  |  \
-        <a href=\"https://github.com/OleksiyM/LinuxLngSwitcher/releases\">Releases</a>  |  \
-        <a href=\"https://github.com/OleksiyM/LinuxLngSwitcher\">GitHub</a>  |  \
-        <a href=\"https://x.com/OleksiyML\">X (Twitter)</a>";
-
-    let mut builder = AboutDialog::builder()
-        .program_name("GNOME Keyboard Layout Switcher")
-        .logo_icon_name("input-keyboard-symbolic")
-        .version(env!("CARGO_PKG_VERSION"))
-        .website("https://github.com/OleksiyM/LinuxLngSwitcher")
-        .comments(comments)
-        .license_type(gtk::License::MitX11);
+    let window = AdwWindow::builder()
+        .title("About")
+        .default_width(380)
+        .default_height(340)
+        .resizable(false)
+        .modal(true)
+        .build();
 
     if let Some(a) = app {
-        builder = builder.application(a);
+        window.set_application(Some(a));
+    }
+    if let Some(p) = parent {
+        window.set_transient_for(Some(p));
     }
 
-    let about = builder.build();
-    if let Some(p) = parent {
-        about.set_transient_for(Some(p));
-        about.set_modal(true);
-    }
-    about.present();
+    let main_box = GtkBox::new(Orientation::Vertical, 0);
+
+    let header = adw::HeaderBar::builder()
+        .show_end_title_buttons(true)
+        .show_start_title_buttons(false)
+        .build();
+    main_box.append(&header);
+
+    let content_box = GtkBox::new(Orientation::Vertical, 10);
+    content_box.set_margin_top(12);
+    content_box.set_margin_bottom(24);
+    content_box.set_margin_start(20);
+    content_box.set_margin_end(20);
+    content_box.set_halign(Align::Center);
+    content_box.set_valign(Align::Center);
+
+    // App Icon
+    let icon = Image::builder()
+        .icon_name("input-keyboard-symbolic")
+        .pixel_size(56)
+        .build();
+    content_box.append(&icon);
+
+    // Title
+    let title = Label::builder()
+        .label("GNOME Keyboard Layout Switcher")
+        .css_classes(vec!["title-2"])
+        .build();
+    content_box.append(&title);
+
+    // Version Badge
+    let ver_label = Label::builder()
+        .label(&format!("v{}", env!("CARGO_PKG_VERSION")))
+        .css_classes(vec!["dim-label"])
+        .build();
+    content_box.append(&ver_label);
+
+    // Description
+    let desc = Label::builder()
+        .label("Fast Control-key input layout switcher for GNOME\n(Wayland & X11)")
+        .justify(gtk::Justification::Center)
+        .build();
+    content_box.append(&desc);
+
+    // Separator
+    let sep = Separator::new(Orientation::Horizontal);
+    sep.set_margin_top(6);
+    sep.set_margin_bottom(4);
+    content_box.append(&sep);
+
+    // Interactive LinkButtons Row
+    let links_box = GtkBox::new(Orientation::Horizontal, 6);
+    links_box.set_halign(Align::Center);
+
+    let btn_web = LinkButton::with_label("https://oleksiym.github.io/LinuxLngSwitcher/", "Website");
+    let btn_rel = LinkButton::with_label("https://github.com/OleksiyM/LinuxLngSwitcher/releases", "Releases");
+    let btn_gh = LinkButton::with_label("https://github.com/OleksiyM/LinuxLngSwitcher", "GitHub");
+    let btn_x = LinkButton::with_label("https://x.com/OleksiyML", "X (Twitter)");
+
+    links_box.append(&btn_web);
+    links_box.append(&Label::builder().label("|").css_classes(vec!["dim-label"]).build());
+    links_box.append(&btn_rel);
+    links_box.append(&Label::builder().label("|").css_classes(vec!["dim-label"]).build());
+    links_box.append(&btn_gh);
+    links_box.append(&Label::builder().label("|").css_classes(vec!["dim-label"]).build());
+    links_box.append(&btn_x);
+
+    content_box.append(&links_box);
+
+    main_box.append(&content_box);
+    window.set_content(Some(&main_box));
+    window.present();
 }
 
 pub fn build_ui(app: &adw::Application) {
