@@ -410,6 +410,18 @@ impl ksni::Tray for SwitcherTray {
                 ..Default::default()
             }
             .into(),
+            StandardItem {
+                label: "About...".to_string(),
+                activate: Box::new(|_this: &mut SwitcherTray| {
+                    log_msg("[Tray Menu] About clicked");
+                    if let Ok(exe_path) = std::env::current_exe() {
+                        log_msg(&format!("[Tray Menu] Spawning About dialog from {:?}", exe_path));
+                        let _ = std::process::Command::new(exe_path).arg("--about").spawn();
+                    }
+                }),
+                ..Default::default()
+            }
+            .into(),
             MenuItem::Separator,
             StandardItem {
                 label: "Quit".to_string(),

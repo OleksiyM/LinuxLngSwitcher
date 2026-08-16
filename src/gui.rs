@@ -1,7 +1,7 @@
 use crate::config::{load_config, save_config, AppConfig};
 use crate::daemon::get_available_layouts;
 use adw::prelude::*;
-use adw::{ActionRow, ApplicationWindow, PreferencesGroup, PreferencesPage};
+use adw::{AboutWindow, ActionRow, ApplicationWindow, PreferencesGroup, PreferencesPage};
 use glib::clone;
 use gtk::gdk;
 use gtk::{
@@ -139,6 +139,22 @@ fn format_layout_name(code: &str) -> String {
     }
 }
 
+pub fn show_about_window(parent: Option<&ApplicationWindow>) {
+    let about = AboutWindow::builder()
+        .application_name("GNOME Keyboard Layout Switcher")
+        .application_icon("input-keyboard-symbolic")
+        .version(env!("CARGO_PKG_VERSION"))
+        .website("https://github.com/OleksiyM/LinuxLngSwitcher")
+        .comments("Fast and intuitive Control-key input layout switcher for GNOME (Wayland & X11).")
+        .license_type(gtk::License::MitX11)
+        .build();
+    if let Some(p) = parent {
+        about.set_transient_for(Some(p));
+        about.set_modal(true);
+    }
+    about.present();
+}
+
 pub fn build_ui(app: &adw::Application) {
     // Auto-update extension files if already installed to keep JS code in sync
     if is_extension_installed() {
@@ -178,6 +194,17 @@ pub fn build_ui(app: &adw::Application) {
 
     // Standard HeaderBar with center-aligned window title "GnomeLngSwitcher"
     let header_bar = adw::HeaderBar::new();
+
+    let about_btn = Button::builder()
+        .icon_name("help-about-symbolic")
+        .tooltip_text("About GnomeLngSwitcher")
+        .valign(Align::Center)
+        .build();
+    about_btn.connect_clicked(clone!(@weak window => move |_| {
+        show_about_window(Some(&window));
+    }));
+    header_bar.pack_end(&about_btn);
+
     main_box.append(&header_bar);
 
     let page = PreferencesPage::new();
@@ -300,7 +327,30 @@ pub fn build_ui(app: &adw::Application) {
         extension_row.add_suffix(&enable_ext_btn);
     }
 
-    // 2. Group: Control Configurations (Side-by-Side macOS Columns inside boxed list)
+    // Row: Application Version & Updates
+    let version_row = ActionRow::builder()
+        .title("Application Version")
+        .subtitle("GNOME Keyboard Layout Switcher")
+        .build();
+    access_group.add(&version_row);
+
+    let ver_badge = Label::builder()
+        .label(&format!("v{}", env!("CARGO_PKG_VERSION")))
+        .css_classes(vec!["status-running"])
+        .valign(Align::Center)
+        .build();
+    version_row.add_suffix(&ver_badge);
+
+    let update_btn = Button::with_label("Check Releases");
+    update_btn.connect_clicked(|_| {
+        let _ = gtk::gio::AppInfo::launch_default_for_uri(
+            "https://github.com/OleksiyM/LinuxLngSwitcher/releases",
+            None::<&gtk::gio::AppLaunchContext>,
+        );
+    });
+    version_row.add_suffix(&update_btn);
+
+    // 2. Group: Control Configurations (Side-by-Side Control Columns inside boxed list)
     let controls_group = PreferencesGroup::builder()
         .title("Control Configurations")
         .build();

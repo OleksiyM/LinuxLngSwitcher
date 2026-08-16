@@ -1,12 +1,30 @@
 # GNOME Keyboard Layout Switcher
 
-A lightweight system utility to port the behavior of macOS style language switching to GNOME Linux (supporting both Wayland and X11 sessions). 
+A lightweight, high-performance system utility for seamless Control-key language switching on GNOME Linux (supporting both Wayland and X11 sessions). 
 
-Tapping the **Left Control** key switches the input layout to English, and tapping the **Right Control** key cycles through alternative layouts (Russian, Ukrainian, etc.). It runs as a low-level background daemon and includes a native GTK4/Libadwaita configuration interface.
+Tapping the **Left Control** key switches the input layout directly to your primary language (e.g. English), and tapping the **Right Control** key cycles through alternative layouts (Russian, Ukrainian, etc.). It runs as a low-level background daemon and includes a native GTK4/Libadwaita configuration interface.
 
 ---
 
-## Setup Guide (From Scratch)
+## 🚀 Option A: Quick Install & Update (Recommended)
+
+To install or update to the latest version automatically in one command:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/OleksiyM/LinuxLngSwitcher/main/install.sh | bash
+```
+
+> **What this script does:**
+> * Detects CPU architecture (`x86_64` or `aarch64`).
+> * Downloads the latest pre-compiled binary and places it in `~/Applications/LngSwitcher/`.
+> * Installs/updates the GNOME Shell extension helper in `~/.local/share/gnome-shell/extensions/`.
+> * Restarts the background daemon automatically.
+
+---
+
+## 🛠️ Option B: Manual Installation (Step-by-Step)
+
+If you prefer to configure everything manually or customize paths:
 
 ### Step 1: Install System Dependencies
 Since this utility uses a native GTK4/Libadwaita interface, make sure the required development libraries are installed on your Linux machine:
@@ -23,15 +41,20 @@ Since this utility uses a native GTK4/Libadwaita interface, make sure the requir
 
 ---
 
-### Step 2: Download and Install the Binary
-1. Download the latest pre-compiled binary:
-   ```bash
-   wget https://github.com/OleksiyM/LinuxLngSwitcher/releases/download/latest/gnome-lng-switcher
-   ```
-2. Grant execution permissions:
-   ```bash
-   chmod +x gnome-lng-switcher
-   ```
+### Step 2: Download and Extract the Binary
+1. Download the latest release archive for your architecture:
+   * **x86_64 (Intel / AMD):**
+     ```bash
+     wget https://github.com/OleksiyM/LinuxLngSwitcher/releases/latest/download/gnome-lng-switcher-x86_64.tar.gz
+     tar -xzf gnome-lng-switcher-x86_64.tar.gz
+     chmod +x gnome-lng-switcher
+     ```
+   * **aarch64 (ARM):**
+     ```bash
+     wget https://github.com/OleksiyM/LinuxLngSwitcher/releases/latest/download/gnome-lng-switcher-aarch64.tar.gz
+     tar -xzf gnome-lng-switcher-aarch64.tar.gz
+     chmod +x gnome-lng-switcher
+     ```
 
 ---
 
@@ -111,3 +134,10 @@ Open your local configuration file at `~/.config/gnome-lng-switcher/config.json`
 
 *   **`window_width`** (optional): Width of the settings window in pixels (default fallback: `540`).
 *   **`window_height`** (optional): Height of the settings window in pixels (default fallback: `660`).
+
+---
+
+## 🌟 Project & Source Code
+
+GitHub Repository: [https://github.com/OleksiyM/LinuxLngSwitcher](https://github.com/OleksiyM/LinuxLngSwitcher)
+

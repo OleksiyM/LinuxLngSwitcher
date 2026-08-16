@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GNOME Keyboard Layout Switcher — macOS style switcher for Linux</title>
+    <title>GNOME Keyboard Layout Switcher — Control-key switcher for Linux</title>
     
     <!-- SEO Meta Tags -->
-    <meta name="description" content="A lightweight system utility to port the macOS style language switching behavior to GNOME Linux. Switch to English with Left Control and cycle with Right Control. Supports Wayland and X11.">
-    <meta name="keywords" content="linux, gnome, keyboard layout, switcher, macos style, wayland, x11, libadwaita, gtk4">
+    <meta name="description" content="A lightweight system utility for seamless Control-key language switching on GNOME Linux. Switch to English with Left Control and cycle layouts with Right Control. Supports Wayland and X11.">
+    <meta name="keywords" content="linux, gnome, keyboard layout, switcher, wayland, x11, libadwaita, gtk4, control keys">
     <meta name="author" content="Alex & Eva">
     
     <!-- Open Graph / Card Info -->
@@ -576,6 +576,7 @@
             </a>
             <ul class="nav-links">
                 <li><a href="#features">Features</a></li>
+                <li><a href="#install">Quick Install</a></li>
                 <li><a href="#setup">Setup Guide</a></li>
             </ul>
             <a href="https://github.com/OleksiyM/LinuxLngSwitcher" class="btn-github" target="_blank">
@@ -589,17 +590,17 @@
         <!-- Hero Section -->
         <header class="hero">
             <div>
-                <h1 class="hero-title">Mac-style layout switching for <span>GNOME Linux</span></h1>
+                <h1 class="hero-title">Control-key layout switching for <span>GNOME Linux</span></h1>
                 <p class="hero-subtitle">
-                    A lightweight background service to switch layout behaviors: tap <strong>Left Control</strong> to set English, and tap <strong>Right Control</strong> to cycle other layouts. Fast, native GTK4 config, Wayland-ready.
+                    A lightweight background service for seamless input switching: tap <strong>Left Control</strong> to set English, and tap <strong>Right Control</strong> to cycle other layouts. Fast, native GTK4/Libadwaita config, Wayland &amp; X11 ready.
                 </p>
                 <div class="hero-actions">
                     <div>
-                        <a href="#setup" class="btn-primary">Get Started &amp; Setup Guide</a>
+                        <a href="#install" class="btn-primary">Quick Install / Update</a>
                     </div>
                     <div class="hero-download-row">
-                        <a id="btn-download-x86" href="https://github.com/OleksiyM/LinuxLngSwitcher/releases/latest/download/gnome-lng-switcher-x86_64.tar.gz" class="btn-secondary">Download for x86_64</a>
-                        <a id="btn-download-arm" href="https://github.com/OleksiyM/LinuxLngSwitcher/releases/latest/download/gnome-lng-switcher-aarch64.tar.gz" class="btn-secondary">Download for aarch64 (ARM)</a>
+                        <a id="btn-download-x86" href="https://github.com/OleksiyM/LinuxLngSwitcher/releases/latest/download/gnome-lng-switcher-x86_64.tar.gz" class="btn-secondary">Download x86_64</a>
+                        <a id="btn-download-arm" href="https://github.com/OleksiyM/LinuxLngSwitcher/releases/latest/download/gnome-lng-switcher-aarch64.tar.gz" class="btn-secondary">Download aarch64 (ARM)</a>
                     </div>
                 </div>
             </div>
@@ -624,15 +625,15 @@
     </div>
 
     <!-- Quick Terminal Copy Section -->
-    <section class="terminal-section">
+    <section id="install" class="terminal-section">
         <div class="container" style="max-width: 800px;">
             <div class="section-header" style="margin-bottom: 30px; text-align: center;">
-                <h2 style="font-family: var(--font-title); font-size: 26px;">Quick Install</h2>
-                <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 16px;">Deploy layouts switcher daemon directly via terminal</p>
-                <!-- Arch Selector Pill -->
+                <h2 style="font-family: var(--font-title); font-size: 26px;">Quick Install &amp; Update</h2>
+                <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 16px;">One command to install or update the daemon and GNOME extension</p>
+                <!-- Mode Selector Pill -->
                 <div class="arch-selector" style="display: flex; justify-content: center; gap: 8px; margin-top: 12px;">
-                    <button id="arch-x86" class="tab-btn active" onclick="setTerminalArch('x86_64')">x86_64 (Intel/AMD)</button>
-                    <button id="arch-arm" class="tab-btn" onclick="setTerminalArch('aarch64')">aarch64 (ARM)</button>
+                    <button id="mode-oneliner" class="tab-btn active" onclick="setInstallMode('oneliner')">One-Liner (Recommended)</button>
+                    <button id="mode-manual" class="tab-btn" onclick="setInstallMode('manual')">Manual Archive</button>
                 </div>
             </div>
             <div class="terminal-box">
@@ -641,11 +642,7 @@
                     <span>bash</span>
                     <span>Terminal</span>
                 </div>
-                <pre id="terminal-content" style="white-space: pre-wrap; word-break: break-all; color: var(--text-secondary); font-family: monospace; line-height: 1.6; margin: 0; padding: 0;">$ wget https://github.com/OleksiyM/LinuxLngSwitcher/releases/latest/download/gnome-lng-switcher-x86_64.tar.gz
-$ tar -xzf gnome-lng-switcher-x86_64.tar.gz
-$ chmod +x gnome-lng-switcher
-$ sudo usermod -aG input $USER
-$ ./gnome-lng-switcher</pre>
+                <pre id="terminal-content" style="white-space: pre-wrap; word-break: break-all; color: var(--text-secondary); font-family: monospace; line-height: 1.6; margin: 0; padding: 0;">curl -fsSL https://raw.githubusercontent.com/OleksiyM/LinuxLngSwitcher/main/install.sh | bash</pre>
             </div>
         </div>
     </section>
@@ -699,18 +696,28 @@ $ ./gnome-lng-switcher</pre>
         </div>
 
         <div class="tabs">
-            <button class="tab-btn active" onclick="switchTab(event, 'tab-dependencies')">1. Dependencies</button>
+            <button class="tab-btn active" onclick="switchTab(event, 'tab-oneliner')">✨ One-Liner (Fastest)</button>
+            <button class="tab-btn" onclick="switchTab(event, 'tab-dependencies')">1. Dependencies</button>
             <button class="tab-btn" onclick="switchTab(event, 'tab-permissions')">2. Permissions</button>
             <button class="tab-btn" onclick="switchTab(event, 'tab-helper')">3. GNOME Extension</button>
-            <button class="tab-btn" onclick="switchTab(event, 'tab-run')">4. Launch & Configure</button>
+            <button class="tab-btn" onclick="switchTab(event, 'tab-run')">4. Launch &amp; Configure</button>
         </div>
 
-        <div id="tab-dependencies" class="tab-content active">
+        <div id="tab-oneliner" class="tab-content active">
+            <h3>Automated Installer &amp; Updater</h3>
+            <p style="color: var(--text-secondary); margin-bottom: 16px;">The easiest way to install or update GnomeLngSwitcher. It detects your CPU architecture, installs the latest binary and GNOME extension, and restarts the background service:</p>
+            <div style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 14px 18px; margin-bottom: 16px;">
+                <code style="color: var(--accent-blue); font-size: 15px;">curl -fsSL https://raw.githubusercontent.com/OleksiyM/LinuxLngSwitcher/main/install.sh | bash</code>
+            </div>
+            <p style="color: var(--text-muted); font-size: 13px;">💡 Note: If you haven't added yourself to the <code>input</code> group yet, run <code>sudo usermod -aG input $USER</code> and log out once.</p>
+        </div>
+
+        <div id="tab-dependencies" class="tab-content">
             <h3>Install Required Libraries</h3>
             <p style="color: var(--text-secondary); margin-bottom: 16px;">Make sure you have GTK4 and Libadwaita development packages installed on your Linux system:</p>
             <ol>
                 <li><strong>Ubuntu / Debian:</strong><br>
-                    <code>sudo apt update && sudo apt install -y libgtk-4-dev libadwaita-1-dev build-essential pkg-config</code>
+                    <code>sudo apt update &amp;&amp; sudo apt install -y libgtk-4-dev libadwaita-1-dev build-essential pkg-config</code>
                 </li>
                 <li><strong>Fedora:</strong><br>
                     <code>sudo dnf install -y gtk4-devel libadwaita-devel pkgconfig</code>
@@ -734,7 +741,7 @@ $ ./gnome-lng-switcher</pre>
             <p style="color: var(--text-secondary); margin-bottom: 16px;">Modern GNOME Shell blocks programmatic layout switches by default. We install a tiny GNOME extension helper to act as a bridge:</p>
             <ol>
                 <li>Run GnomeLngSwitcher settings: <code>./gnome-lng-switcher</code></li>
-                <li>In the <strong>Access & Daemon Status</strong> category, find <strong>GNOME Extension Helper</strong> and click <strong>"Enable Helper"</strong>.</li>
+                <li>In the <strong>Access &amp; Daemon Status</strong> category, find <strong>GNOME Extension Helper</strong> and click <strong>"Enable Helper"</strong>.</li>
                 <li><strong>Log out</strong> and <strong>log in</strong> once more to load the GNOME Shell helper extension into session memory.</li>
             </ol>
         </div>
@@ -754,12 +761,16 @@ $ ./gnome-lng-switcher</pre>
 
     <!-- Footer -->
     <footer>
-        <p>GnomeLngSwitcher is open-source software, licensed under MIT. | Built by Alex & Eva.</p>
-        <p style="margin-top: 8px;"><a href="https://github.com/OleksiyM/LinuxLngSwitcher">View Project on GitHub</a></p>
+        <p>GnomeLngSwitcher is open-source software, licensed under MIT. | Built by Alex &amp; Eva.</p>
+        <p style="margin-top: 8px;">
+            <a href="https://github.com/OleksiyM/LinuxLngSwitcher">GitHub Repository</a> &bull; 
+            <a href="https://github.com/OleksiyM/LinuxLngSwitcher/releases">Releases</a>
+        </p>
     </footer>
 
     <!-- Tab Switching Logic & Text Copying -->
     <script>
+        let currentMode = 'oneliner';
         let currentArch = 'x86_64';
         let currentTag = 'latest';
 
@@ -778,10 +789,15 @@ $ ./gnome-lng-switcher</pre>
             evt.currentTarget.classList.add("active");
         }
 
+        function setInstallMode(mode) {
+            currentMode = mode;
+            document.getElementById('mode-oneliner').classList.toggle('active', mode === 'oneliner');
+            document.getElementById('mode-manual').classList.toggle('active', mode === 'manual');
+            renderTerminal();
+        }
+
         function setTerminalArch(arch) {
             currentArch = arch;
-            document.getElementById('arch-x86').classList.toggle('active', arch === 'x86_64');
-            document.getElementById('arch-arm').classList.toggle('active', arch === 'aarch64');
             renderTerminal();
         }
 
@@ -791,6 +807,10 @@ $ ./gnome-lng-switcher</pre>
         }
 
         function renderTerminal() {
+            if (currentMode === 'oneliner') {
+                document.getElementById('terminal-content').textContent = 'curl -fsSL https://raw.githubusercontent.com/OleksiyM/LinuxLngSwitcher/main/install.sh | bash';
+                return;
+            }
             const tagPart = currentTag === 'latest' ? 'latest/download' : `download/${currentTag}`;
             const commands = `$ wget https://github.com/OleksiyM/LinuxLngSwitcher/releases/${tagPart}/gnome-lng-switcher-${currentArch}.tar.gz
 $ tar -xzf gnome-lng-switcher-${currentArch}.tar.gz
@@ -801,14 +821,19 @@ $ ./gnome-lng-switcher`;
         }
 
         function copyTerminalText() {
-            const tagPart = currentTag === 'latest' ? 'latest/download' : `download/${currentTag}`;
-            const commands = `wget https://github.com/OleksiyM/LinuxLngSwitcher/releases/${tagPart}/gnome-lng-switcher-${currentArch}.tar.gz
+            let textToCopy = "";
+            if (currentMode === 'oneliner') {
+                textToCopy = 'curl -fsSL https://raw.githubusercontent.com/OleksiyM/LinuxLngSwitcher/main/install.sh | bash';
+            } else {
+                const tagPart = currentTag === 'latest' ? 'latest/download' : `download/${currentTag}`;
+                textToCopy = `wget https://github.com/OleksiyM/LinuxLngSwitcher/releases/${tagPart}/gnome-lng-switcher-${currentArch}.tar.gz
 tar -xzf gnome-lng-switcher-${currentArch}.tar.gz
 chmod +x gnome-lng-switcher
 sudo usermod -aG input $USER
 ./gnome-lng-switcher`;
+            }
             
-            navigator.clipboard.writeText(commands).then(() => {
+            navigator.clipboard.writeText(textToCopy).then(() => {
                 const copyBtn = document.querySelector(".terminal-copy-btn");
                 copyBtn.innerText = "Copied!";
                 setTimeout(() => {
