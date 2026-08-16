@@ -140,12 +140,18 @@ fn format_layout_name(code: &str) -> String {
 }
 
 pub fn show_about_window(app: Option<&adw::Application>, parent: Option<&ApplicationWindow>) {
+    let comments = "Fast Control-key input layout switcher for GNOME\n(Wayland & X11)\n\n\
+        <a href=\"https://oleksiym.github.io/LinuxLngSwitcher/\">Website</a>  |  \
+        <a href=\"https://github.com/OleksiyM/LinuxLngSwitcher/releases\">Releases</a>  |  \
+        <a href=\"https://github.com/OleksiyM/LinuxLngSwitcher\">GitHub</a>  |  \
+        <a href=\"https://x.com/OleksiyML\">X (Twitter)</a>";
+
     let mut builder = AboutDialog::builder()
         .program_name("GNOME Keyboard Layout Switcher")
         .logo_icon_name("input-keyboard-symbolic")
         .version(env!("CARGO_PKG_VERSION"))
         .website("https://github.com/OleksiyM/LinuxLngSwitcher")
-        .comments("Fast and intuitive Control-key input layout switcher for GNOME (Wayland & X11).")
+        .comments(comments)
         .license_type(gtk::License::MitX11);
 
     if let Some(a) = app {
@@ -331,29 +337,6 @@ pub fn build_ui(app: &adw::Application) {
         }));
         extension_row.add_suffix(&enable_ext_btn);
     }
-
-    // Row: Application Version & Updates
-    let version_row = ActionRow::builder()
-        .title("Application Version")
-        .subtitle("GNOME Keyboard Layout Switcher")
-        .build();
-    access_group.add(&version_row);
-
-    let ver_badge = Label::builder()
-        .label(&format!("v{}", env!("CARGO_PKG_VERSION")))
-        .css_classes(vec!["status-running"])
-        .valign(Align::Center)
-        .build();
-    version_row.add_suffix(&ver_badge);
-
-    let update_btn = Button::with_label("Check Releases");
-    update_btn.connect_clicked(|_| {
-        let _ = gtk::gio::AppInfo::launch_default_for_uri(
-            "https://github.com/OleksiyM/LinuxLngSwitcher/releases",
-            None::<&gtk::gio::AppLaunchContext>,
-        );
-    });
-    version_row.add_suffix(&update_btn);
 
     // 2. Group: Control Configurations (Side-by-Side Control Columns inside boxed list)
     let controls_group = PreferencesGroup::builder()
