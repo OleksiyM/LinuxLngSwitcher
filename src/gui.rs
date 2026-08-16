@@ -1,12 +1,12 @@
-use crate::config::{load_config, save_config, AppConfig};
+use crate::config::{load_config, save_config};
 use crate::daemon::get_available_layouts;
 use adw::prelude::*;
-use adw::{AboutWindow, ActionRow, ApplicationWindow, PreferencesGroup, PreferencesPage};
+use adw::{ActionRow, ApplicationWindow, PreferencesGroup, PreferencesPage};
 use glib::clone;
 use gtk::gdk;
 use gtk::{
-    Align, Box as GtkBox, Button, CheckButton, DropDown, Label, ListBoxRow, Orientation, Scale,
-    SelectionMode, Separator, Switch,
+    AboutDialog, Align, Box as GtkBox, Button, CheckButton, DropDown, Label, ListBoxRow,
+    Orientation, Scale, Separator, Switch,
 };
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -140,9 +140,9 @@ fn format_layout_name(code: &str) -> String {
 }
 
 pub fn show_about_window(parent: Option<&ApplicationWindow>) {
-    let about = AboutWindow::builder()
-        .application_name("GNOME Keyboard Layout Switcher")
-        .application_icon("input-keyboard-symbolic")
+    let about = AboutDialog::builder()
+        .program_name("GNOME Keyboard Layout Switcher")
+        .logo_icon_name("input-keyboard-symbolic")
         .version(env!("CARGO_PKG_VERSION"))
         .website("https://github.com/OleksiyM/LinuxLngSwitcher")
         .comments("Fast and intuitive Control-key input layout switcher for GNOME (Wayland & X11).")
