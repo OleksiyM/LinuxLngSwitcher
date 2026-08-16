@@ -635,6 +635,11 @@
                     <button id="mode-oneliner" class="tab-btn active" onclick="setInstallMode('oneliner')">One-Liner (Recommended)</button>
                     <button id="mode-manual" class="tab-btn" onclick="setInstallMode('manual')">Manual Archive</button>
                 </div>
+                <!-- Arch Selector Pill (visible in manual mode) -->
+                <div id="manual-arch-selector" style="display: none; justify-content: center; gap: 8px; margin-top: 12px;">
+                    <button id="arch-x86" class="tab-btn active" onclick="setTerminalArch('x86_64')">x86_64 (Intel/AMD)</button>
+                    <button id="arch-arm" class="tab-btn" onclick="setTerminalArch('aarch64')">aarch64 (ARM)</button>
+                </div>
             </div>
             <div class="terminal-box">
                 <button class="terminal-copy-btn" onclick="copyTerminalText()">Copy</button>
@@ -793,11 +798,18 @@
             currentMode = mode;
             document.getElementById('mode-oneliner').classList.toggle('active', mode === 'oneliner');
             document.getElementById('mode-manual').classList.toggle('active', mode === 'manual');
+            
+            const archSelector = document.getElementById('manual-arch-selector');
+            if (archSelector) {
+                archSelector.style.display = (mode === 'manual') ? 'flex' : 'none';
+            }
             renderTerminal();
         }
 
         function setTerminalArch(arch) {
             currentArch = arch;
+            document.getElementById('arch-x86').classList.toggle('active', arch === 'x86_64');
+            document.getElementById('arch-arm').classList.toggle('active', arch === 'aarch64');
             renderTerminal();
         }
 
