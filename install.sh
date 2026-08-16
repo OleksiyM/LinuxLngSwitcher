@@ -105,8 +105,17 @@ fi
 
 # 8. Start daemon in background
 echo "🚀 Starting daemon..."
-nohup "${APP_DIR}/gnome-lng-switcher" --daemon > "${CONFIG_DIR}/daemon.log" 2>&1 &
-disown 2>/dev/null || true
+if command -v systemd-run >/dev/null 2>&1 && systemctl --user is-system-running >/dev/null 2>&1; then
+    systemctl --user stop gnome-lng-switcher 2>/dev/null || true
+    systemctl --user reset-failed gnome-lng-switcher 2>/dev/null || true
+    systemd-run --user --unit=gnome-lng-switcher "${APP_DIR}/gnome-lng-switcher" --daemon >/dev/null 2>&1 || true
+fi
+
+# Fallback / verification: if not running via systemd, start with detached nohup
+if ! pgrep -f "gnome-lng-switcher --daemon" >/dev/null 2>&1; then
+    nohup "${APP_DIR}/gnome-lng-switcher" --daemon </dev/null > "${CONFIG_DIR}/daemon.log" 2>&1 &
+    disown 2>/dev/null || true
+fi
 sleep 1
 
 if pgrep -f "gnome-lng-switcher --daemon" >/dev/null 2>&1; then

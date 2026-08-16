@@ -139,15 +139,20 @@ fn format_layout_name(code: &str) -> String {
     }
 }
 
-pub fn show_about_window(parent: Option<&ApplicationWindow>) {
-    let about = AboutDialog::builder()
+pub fn show_about_window(app: Option<&adw::Application>, parent: Option<&ApplicationWindow>) {
+    let mut builder = AboutDialog::builder()
         .program_name("GNOME Keyboard Layout Switcher")
         .logo_icon_name("input-keyboard-symbolic")
         .version(env!("CARGO_PKG_VERSION"))
         .website("https://github.com/OleksiyM/LinuxLngSwitcher")
         .comments("Fast and intuitive Control-key input layout switcher for GNOME (Wayland & X11).")
-        .license_type(gtk::License::MitX11)
-        .build();
+        .license_type(gtk::License::MitX11);
+
+    if let Some(a) = app {
+        builder = builder.application(a);
+    }
+
+    let about = builder.build();
     if let Some(p) = parent {
         about.set_transient_for(Some(p));
         about.set_modal(true);
@@ -201,7 +206,7 @@ pub fn build_ui(app: &adw::Application) {
         .valign(Align::Center)
         .build();
     about_btn.connect_clicked(clone!(@weak window => move |_| {
-        show_about_window(Some(&window));
+        show_about_window(None, Some(&window));
     }));
     header_bar.pack_end(&about_btn);
 

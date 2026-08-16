@@ -21,8 +21,8 @@ fn main() {
             .application_id("org.gnome.GnomeLngSwitcher.About")
             .build();
 
-        app.connect_activate(|_app| {
-            gui::show_about_window(None);
+        app.connect_activate(|app| {
+            gui::show_about_window(Some(app), None);
         });
 
         app.run_with_args::<&str>(&[]);
